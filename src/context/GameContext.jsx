@@ -5,10 +5,18 @@ const GameContext = createContext(null);
 export function GameProvider({ children }) {
   const [dishes, setDishes] = useState([]);
   const [restaurantName, setRestaurantName] = useState('');
+  const [restaurantLocation, setRestaurantLocation] = useState('');
 
   const value = useMemo(
-    () => ({ dishes, setDishes, restaurantName, setRestaurantName }),
-    [dishes, restaurantName]
+    () => ({ 
+      dishes, 
+      setDishes, 
+      restaurantName, 
+      setRestaurantName,
+      restaurantLocation,
+      setRestaurantLocation
+    }),
+    [dishes, restaurantName, restaurantLocation]
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

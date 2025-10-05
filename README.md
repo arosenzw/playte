@@ -68,3 +68,19 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Environment Setup
+
+### Google Maps API Key
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Get a Google Maps API key from [Google Cloud Console](https://console.cloud.google.com/)
+3. Enable Places API and Maps JavaScript API
+4. Add your API key to `.env`:
+   ```
+   REACT_APP_GOOGLE_MAPS_API_KEY=your_actual_api_key_here
+   ```
+
+The app will work without the API key, but restaurant autocomplete will be disabled.

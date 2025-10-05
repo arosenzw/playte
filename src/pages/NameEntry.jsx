@@ -14,8 +14,21 @@ function NameEntry() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Future: persist name to context or storage
-    navigate('/restaurant');
+    const trimmedName = name.trim();
+    
+    // Check if user came from "Join a game" button
+    const isJoining = localStorage.getItem('isJoining') === 'true';
+    
+    if (isJoining) {
+      // Store player name for joining a game
+      localStorage.setItem('playerName', trimmedName);
+      navigate('/joinGame');
+    } else {
+      // Store host name separately to avoid conflicts
+      localStorage.setItem('hostPlayerName', trimmedName);
+      localStorage.setItem('playerName', trimmedName); // Keep this for backward compatibility
+      navigate('/restaurant');
+    }
   };
 
   return (

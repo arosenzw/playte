@@ -22,7 +22,10 @@ function Home() {
           <div className="space-y-8">
             <div>
               <button
-                onClick={() => navigate('/name')}
+                onClick={() => {
+                  localStorage.removeItem('isJoining');
+                  navigate('/name');
+                }}
                 className="w-full rounded-full bg-[#F27E7E] hover:brightness-95 text-white text-[28px] leading-none font-semibold py-5 shadow-sm"
               >
                 start a game
@@ -32,7 +35,10 @@ function Home() {
 
             <div>
               <button
-                onClick={() => navigate('/join')}
+                onClick={() => {
+                  localStorage.setItem('isJoining', 'true');
+                  navigate('/name');
+                }}
                 className="w-full rounded-full bg-[#FF3B30] hover:brightness-95 text-white text-[28px] leading-none font-semibold py-5 shadow-sm"
               >
                 join a game
