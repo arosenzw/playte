@@ -1,24 +1,29 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import NameEntry from './pages/NameEntry';
+import Restaurant from './pages/Restaurant';
+import DishEntry from './pages/DishEntry';
+import GatherAround from './pages/GatherAround';
+import Ranking from './pages/Ranking';
+import Mixing from './pages/Mixing';
+import Results from './pages/Results';
+import FlavorJourney from './pages/FlavorJourney';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/name" element={<NameEntry />} />
+      <Route path="/join" element={<div />} />
+      <Route path="/restaurant" element={<Restaurant />} />
+      <Route path="/dish" element={<DishEntry />} />
+      <Route path="/gatherAround" element={<GatherAround />} />
+      <Route path="/ranking" element={<Ranking />} />
+      <Route path="/mixing" element={<Mixing />} />
+      <Route path="/results" element={<Results />} />
+      <Route path="/flavorJourney" element={<FlavorJourney />} />
+    </Routes>
   );
 }
 
