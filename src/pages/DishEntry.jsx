@@ -45,6 +45,14 @@ function DishEntry() {
     navigate('/gatherAround');
   };
 
+  const dishesCount = dishes.length;
+  const remaining = Math.max(4 - dishesCount, 0);
+  const progressMessage = dishesCount === 0
+    ? 'minimum 4 dishes'
+    : dishesCount < 4
+      ? `${dishesCount} added - ${remaining} more to go!`
+      : `${dishesCount} added - you can keep adding or continue`;
+
   // Ensure pills are visible on mount if coming back
   useEffect(() => {}, [dishes]);
 
@@ -57,19 +65,32 @@ function DishEntry() {
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="enter items"
-                className="w-full rounded-xl bg-[#F8DDA5] placeholder-[#C9B68F] text-[#7A6F5E] text-lg px-5 py-3 border border-[#E7C88F] focus:outline-none focus:ring-2 focus:ring-[#F7C970] text-center placeholder:text-center"
-              />
-              <div className="text-[10px] text-[#8C8376] -mt-3">
-                min 4 items
-                {showDuplicateMessage && (
-                  <span className="text-[#FF3B30] ml-2">• item already added</span>
-                )}
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Add a dish…"
+                  className="w-full rounded-xl bg-[#F8DDA5] placeholder-[#C9B68F] text-[#7A6F5E] text-base md:text-lg px-5 py-3 border border-[#E7C88F] focus:outline-none focus:ring-2 focus:ring-[#F7C970] text-center placeholder:text-center placeholder:text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => addDish(input)}
+                  className="whitespace-nowrap rounded-xl bg-[#FF3B30] text-white font-semibold px-5 py-3 text-sm enabled:hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!input.trim()}
+                >
+                  + Add
+                </button>
+              </div>
+              <div className="space-y-1 text-center -mt-4">
+                <p className="text-[10px] text-[#8C8376]">Press Enter or + Add after each one.</p>
+                <div className="text-[10px] text-[#8C8376]">
+                  {progressMessage}
+                  {showDuplicateMessage && (
+                    <span className="text-[#FF3B30] ml-2">• item already added</span>
+                  )}
+                </div>
               </div>
 
               {dishes.length > 0 && (

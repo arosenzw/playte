@@ -57,24 +57,56 @@ function GatherAround() {
 
         // First, insert or get the restaurant
         let restaurantId = null;
+        const formattedRestaurantName = restaurantName ? restaurantName.trim() : '';
+        const formattedRestaurantLocation = restaurantLocation || null;
+
         if (restaurantName && restaurantName.trim()) {
           // Try to find existing restaurant first (case-insensitive)
           const { data: existingRestaurant } = await supabase
             .from('restaurants')
-            .select('id, location')
-            .ilike('name', restaurantName.trim())
+            .select('id, name, location')
+            .ilike('name', formattedRestaurantName)
             .single();
 
           if (existingRestaurant) {
             restaurantId = existingRestaurant.id;
             console.log('✅ Found existing restaurant:', existingRestaurant);
+
+            const shouldUpdateName =
+              existingRestaurant.name &&
+              existingRestaurant.name !== formattedRestaurantName;
+
+            const shouldUpdateLocation =
+              formattedRestaurantLocation &&
+              formattedRestaurantLocation !== existingRestaurant.location;
+
+            if (shouldUpdateName || shouldUpdateLocation) {
+              const updates = {};
+              if (shouldUpdateName) {
+                updates.name = formattedRestaurantName;
+              }
+              if (shouldUpdateLocation) {
+                updates.location = formattedRestaurantLocation;
+              }
+
+              const { error: updateRestaurantError } = await supabase
+                .from('restaurants')
+                .update(updates)
+                .eq('id', restaurantId);
+
+              if (updateRestaurantError) {
+                console.error('Error updating restaurant casing/location:', updateRestaurantError);
+              } else {
+                console.log('✏️ Updated restaurant display info:', updates);
+              }
+            }
           } else {
             // Insert new restaurant with location
             const { data: newRestaurant, error: restaurantError } = await supabase
               .from('restaurants')
               .insert({
-                name: restaurantName.trim(),
-                location: restaurantLocation || null
+                name: formattedRestaurantName,
+                location: formattedRestaurantLocation
               })
               .select()
               .single();
@@ -94,7 +126,7 @@ function GatherAround() {
           .insert({
             code: code,
             restaurant_id: restaurantId,
-            restaurant_name: restaurantName || 'Unknown Restaurant',
+            restaurant_name: formattedRestaurantName || 'Unknown Restaurant',
             is_active: true
           })
           .select()
