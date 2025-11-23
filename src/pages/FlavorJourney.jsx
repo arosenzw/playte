@@ -68,20 +68,18 @@ function FlavorJourney() {
         // Loser is the highest rank_order (last place)
         const loser = sorted[sorted.length - 1];
         
-        setWinningDish(winner || null);
-        setLosingDish(loser || null);
+        // Initialize all data variables (will be set all at once at the end)
+        let hotColdDishResult = null;
+        let bestTasteBudsResult = null;
 
-        // Fetch ratings to compute standard deviation for Hot & Cold
+        // Fetch ratings once with all fields needed for both Hot & Cold and Best Taste Buds
         const { data: ratingsData, error: ratingsError } = await supabase
           .from('ratings')
-          .select('dish_id, rank')
+          .select('dish_id, rank, player_id')
           .eq('game_table_id', storedRoomId);
 
-        if (ratingsError) {
-          console.error('Error fetching ratings:', ratingsError);
-          // Continue without hot & cold dish if ratings fetch fails
-        } else if (ratingsData && ratingsData.length > 0) {
-          // Group ratings by dish_id
+        if (!ratingsError && ratingsData && ratingsData.length > 0) {
+          // Group ratings by dish_id for Hot & Cold calculation
           const dishRatings = {};
           ratingsData.forEach(rating => {
             if (!dishRatings[rating.dish_id]) {
@@ -139,32 +137,26 @@ function FlavorJourney() {
 
           // The first dish after sorting is the Hot & Cold dish
           if (dishStdDevs.length > 0) {
-            setHotColdDish(dishStdDevs[0].dish_info);
+            hotColdDishResult = dishStdDevs[0].dish_info;
           }
         }
 
         // Calculate Best Taste Buds using Spearman correlation
         const currentPlayerId = localStorage.getItem('currentPlayerId');
-        if (currentPlayerId) {
-          // Fetch all ratings for the game
-          const { data: allRatings, error: allRatingsError } = await supabase
-            .from('ratings')
-            .select('player_id, dish_id, rank')
-            .eq('game_table_id', storedRoomId);
-
+        if (currentPlayerId && !ratingsError && ratingsData) {
           // Fetch all players for the game
           const { data: allPlayers, error: playersError } = await supabase
             .from('players')
             .select('id, name')
             .eq('game_table_id', storedRoomId);
 
-          if (!allRatingsError && !playersError && allRatings && allPlayers) {
+          if (!playersError && ratingsData && allPlayers) {
             // Get all unique dish IDs in the game (sorted for consistency)
-            const allDishIds = [...new Set(allRatings.map(r => r.dish_id))].sort();
+            const allDishIds = [...new Set(ratingsData.map(r => r.dish_id))].sort();
             
             if (allDishIds.length > 0) {
               // Build rank array for current user: [rank for dish1, rank for dish2, ...]
-              const currentUserRatings = allRatings.filter(r => r.player_id === currentPlayerId);
+              const currentUserRatings = ratingsData.filter(r => r.player_id === currentPlayerId);
               const currentUserRankArray = allDishIds.map(dishId => {
                 const rating = currentUserRatings.find(r => r.dish_id === dishId);
                 return rating ? rating.rank : null;
@@ -180,7 +172,7 @@ function FlavorJourney() {
                   if (player.id === currentPlayerId) return; // Skip self
 
                   // Build rank array for this player
-                  const playerRatings = allRatings.filter(r => r.player_id === player.id);
+                  const playerRatings = ratingsData.filter(r => r.player_id === player.id);
                   const playerRankArray = allDishIds.map(dishId => {
                     const rating = playerRatings.find(r => r.dish_id === dishId);
                     return rating ? rating.rank : null;
@@ -204,12 +196,18 @@ function FlavorJourney() {
                 });
 
                 if (bestMatchPlayer) {
-                  setBestTasteBuds(bestMatchPlayer);
+                  bestTasteBudsResult = bestMatchPlayer;
                 }
               }
             }
           }
         }
+
+        // Set all state at once after all data is collected
+        setWinningDish(winner || null);
+        setLosingDish(loser || null);
+        setHotColdDish(hotColdDishResult);
+        setBestTasteBuds(bestTasteBudsResult);
       }
 
       setIsLoading(false);
@@ -327,35 +325,35 @@ function FlavorJourney() {
                         {losingDish?.dish_name || 'N/A'}
                       </div>
                     </div>
+
+                    {/* Hot & Cold */}
+                    <div className="text-center">
+                      <h2 className="text-[clamp(20px,5vw,28px)] font-extrabold text-[#F44336] mb-2">
+                        hot & cold 😐
+                      </h2>
+                      <p className="text-[#8C8376] text-sm mb-4">the great playte debate</p>
+                      <div className="rounded-2xl bg-[#F8DDA5] border border-[#E7C88F] px-4 py-3 text-[#4C463D] text-lg">
+                        {hotColdDish?.dish_name || 'N/A'}
+                      </div>
+                    </div>
+
+                    {/* Best Taste Buds */}
+                    <div className="text-center">
+                      <h2 className="text-[clamp(20px,5vw,28px)] font-extrabold text-[#F44336] mb-2">
+                        best (taste) buds 😁
+                      </h2>
+                      <p className="text-[#8C8376] text-sm mb-4">you should share next time</p>
+                      <div className="rounded-2xl bg-[#F8DDA5] border border-[#E7C88F] px-4 py-3 text-[#4C463D]">
+                        <div className="text-lg font-semibold">{bestTasteBuds?.name || 'N/A'}</div>
+                        {bestTasteBuds && (
+                          <div className="text-xs text-[#8C8376] mt-1">
+                            {(bestTasteBuds.correlation * 100).toFixed(1)}% match
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </>
                 )}
-
-                {/* Hot & Cold */}
-                <div className="text-center">
-                  <h2 className="text-[clamp(20px,5vw,28px)] font-extrabold text-[#F44336] mb-2">
-                    hot & cold 😐
-                  </h2>
-                  <p className="text-[#8C8376] text-sm mb-4">the great playte debate</p>
-                  <div className="rounded-2xl bg-[#F8DDA5] border border-[#E7C88F] px-4 py-3 text-[#4C463D] text-lg">
-                    {hotColdDish?.dish_name || 'N/A'}
-                  </div>
-                </div>
-
-                {/* Best Taste Buds */}
-                <div className="text-center">
-                  <h2 className="text-[clamp(20px,5vw,28px)] font-extrabold text-[#F44336] mb-2">
-                    best (taste) buds 😁
-                  </h2>
-                  <p className="text-[#8C8376] text-sm mb-4">you should share next time</p>
-                  <div className="rounded-2xl bg-[#F8DDA5] border border-[#E7C88F] px-4 py-3 text-[#4C463D]">
-                    <div className="text-lg font-semibold">{bestTasteBuds?.name || 'N/A'}</div>
-                    {bestTasteBuds && (
-                      <div className="text-xs text-[#8C8376] mt-1">
-                        {(bestTasteBuds.correlation * 100).toFixed(1)}% match
-                      </div>
-                    )}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
