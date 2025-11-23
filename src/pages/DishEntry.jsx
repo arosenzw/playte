@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 
@@ -7,6 +7,7 @@ function DishEntry() {
   const [input, setInput] = useState('');
   const [showDuplicateMessage, setShowDuplicateMessage] = useState(false);
   const { dishes, setDishes } = useGame();
+  const inputRef = useRef(null);
 
   const addDish = (value) => {
     const trimmed = value.trim();
@@ -22,11 +23,19 @@ function DishEntry() {
       setShowDuplicateMessage(true);
       setTimeout(() => setShowDuplicateMessage(false), 2000);
       setInput('');
+      // Refocus input to keep keyboard open
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
       return;
     }
     
     setDishes((prev) => [...prev, trimmed]);
     setInput('');
+    // Refocus input to keep keyboard open on mobile
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
   };
 
   const handleKeyDown = (e) => {
@@ -42,6 +51,8 @@ function DishEntry() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Blur input to dismiss keyboard on mobile
+    inputRef.current?.blur();
     navigate('/gatherAround');
   };
 
@@ -67,6 +78,7 @@ function DishEntry() {
             <div className="space-y-6">
               <div className="flex gap-3">
                 <input
+                  ref={inputRef}
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -76,7 +88,10 @@ function DishEntry() {
                 />
                 <button
                   type="button"
-                  onClick={() => addDish(input)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    addDish(input);
+                  }}
                   className="whitespace-nowrap rounded-xl bg-[#FF3B30] text-white font-semibold px-5 py-3 text-sm enabled:hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!input.trim()}
                 >
