@@ -11,10 +11,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Places API not configured" }, { status: 500 });
   }
 
+  const lat = request.nextUrl.searchParams.get("lat");
+  const lng = request.nextUrl.searchParams.get("lng");
+
   const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json");
   url.searchParams.set("query", query);
   url.searchParams.set("type", "restaurant");
   url.searchParams.set("key", apiKey);
+  if (lat && lng) {
+    url.searchParams.set("location", `${lat},${lng}`);
+    url.searchParams.set("radius", "10000");
+  }
 
   const res = await fetch(url.toString());
   const data = await res.json();

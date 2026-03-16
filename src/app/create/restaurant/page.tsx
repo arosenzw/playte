@@ -18,19 +18,26 @@ export default function RestaurantSearchPage() {
   const [results, setResults] = useState<PlaceResult[]>([]);
   const [selected, setSelected] = useState<PlaceResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const locationRef = useRef<{ lat: number; lng: number } | null>(null);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+    navigator.geolocation?.getCurrentPosition((pos) => {
+      locationRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    });
   }, []);
 
   const search = useCallback(async (q: string) => {
     if (q.trim().length < 2) { setResults([]); return; }
     setLoading(true);
     try {
-      const res = await fetch(`/api/places?query=${encodeURIComponent(q)}`);
+      const loc = locationRef.current;
+      const params = new URLSearchParams({ query: q });
+      if (loc) { params.set("lat", String(loc.lat)); params.set("lng", String(loc.lng)); }
+      const res = await fetch(`/api/places?${params}`);
       const data = await res.json();
       setResults(data.results ?? []);
     } finally {
