@@ -52,7 +52,9 @@ async function computeInsights(sessionId: string) {
   }
 
   const mostLovedDishId = Object.entries(firstCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
-  const nachoTypeDishId = Object.entries(lastCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+  const nachoTypeDishId = Object.entries(dishAvgRanks)
+    .filter(([id]) => id !== mostLovedDishId)
+    .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
   const hotColdSorted = Object.entries(dishRankVariance).sort((a, b) => b[1] - a[1]);
   const hotColdDishId = (hotColdSorted[0]?.[1] ?? 0) > 0 ? hotColdSorted[0][0] : null;
 
