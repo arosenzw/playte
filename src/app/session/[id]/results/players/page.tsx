@@ -68,17 +68,17 @@ export default function ResultsPlayersPage() {
         </div>
       </div>
 
-      <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-[#FFF8E8] w-full flex justify-center">
+      <div className="flex-shrink-0 px-6 pb-6 pt-3 bg-[#FFF8E8] w-full flex justify-center">
         <div className="w-full max-w-sm flex flex-col gap-2">
           <button
             onClick={() => router.push(`/session/${id}/results`)}
-            className="w-full bg-[#F88888] text-white text-base font-semibold py-3 rounded-full"
+            className="w-full bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
           >
             table results
           </button>
           <button
             onClick={() => router.push(`/session/${id}/results/flavor`)}
-            className="w-full bg-[#F88888] text-white text-base font-semibold py-3 rounded-full"
+            className="w-full bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
           >
             flavor journey
           </button>

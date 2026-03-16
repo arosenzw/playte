@@ -73,10 +73,10 @@ export default function ResultsDishesPage() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto flex flex-col items-center px-6 pt-10 pb-4">
-        <Image src="/logo.png" alt="playte" width={70} height={70} priority />
-        <p className="text-[#9CA3AF] italic text-sm mt-2 min-h-[1.25rem]">{restaurantName}</p>
-        <h1 className="text-[#FE392D] text-3xl font-bold mt-1 mb-6">the results are in.</h1>
+      <div className="flex-1 overflow-y-auto flex flex-col items-center px-6 pt-6 pb-4">
+        <Image src="/logo.png" alt="playte" width={56} height={56} priority />
+        <p className="text-[#9CA3AF] italic text-sm mt-1 min-h-[1.25rem]">{restaurantName}</p>
+        <h1 className="text-[#FE392D] text-2xl font-bold mt-0 mb-4">the results are in.</h1>
 
         {top3.length >= 1 && podiumDelay !== null && (
           <div className="w-full max-w-sm">
@@ -106,24 +106,24 @@ export default function ResultsDishesPage() {
         </div>
       </div>
 
-      <div className="flex-shrink-0 px-6 pb-8 pt-4 flex flex-col gap-2 bg-[#FFF8E8] w-full items-center">
+      <div className="flex-shrink-0 px-6 pb-6 pt-3 flex flex-col gap-2 bg-[#FFF8E8] w-full items-center">
         <div className="w-full max-w-sm flex flex-col gap-2">
           <button
             onClick={handleShare}
             disabled={sharing || !data}
-            className="w-full bg-[#FE392D] text-white text-base font-semibold py-3 rounded-full disabled:opacity-60"
+            className="w-full bg-[#FE392D] text-white text-sm font-semibold py-2.5 rounded-full disabled:opacity-60"
           >
             {sharing ? "generating..." : "share results"}
           </button>
           <button
             onClick={() => router.push(`/session/${id}/results/flavor`)}
-            className="w-full bg-[#F88888] text-white text-base font-semibold py-3 rounded-full"
+            className="w-full bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
           >
             flavor journey
           </button>
           <button
             onClick={() => router.push(`/session/${id}/results/players`)}
-            className="w-full bg-[#F88888] text-white text-base font-semibold py-3 rounded-full"
+            className="w-full bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
           >
             individual rankings
           </button>
