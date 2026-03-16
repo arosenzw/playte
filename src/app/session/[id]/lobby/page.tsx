@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { QRCodeSVG } from "qrcode.react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LobbyPage() {
@@ -80,6 +81,18 @@ export default function LobbyPage() {
         <p className="text-[#FE392D] text-6xl font-bold tracking-wider mt-8">
           {joinCode ?? "------"}
         </p>
+
+        {/* QR code */}
+        {joinCode && (
+          <div className="mt-6 p-4 bg-white rounded-2xl shadow-sm">
+            <QRCodeSVG
+              value={`${typeof window !== "undefined" ? window.location.origin : ""}/join/code?code=${joinCode}`}
+              size={160}
+              fgColor="#FE392D"
+              bgColor="#FFFFFF"
+            />
+          </div>
+        )}
       </div>
 
       {/* Bottom */}

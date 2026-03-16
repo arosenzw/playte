@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 export default function JoinCodePage() {
-  const [code, setCode] = useState("");
+  const searchParams = useSearchParams();
+  const prefill = searchParams.get("code") ?? "";
+  const [code, setCode] = useState(prefill.toUpperCase());
   const [error, setError] = useState("");
   const [joining, setJoining] = useState(false);
   const router = useRouter();
@@ -22,6 +24,7 @@ export default function JoinCodePage() {
 
     const playerName = sessionStorage.getItem("player_name");
     if (!playerName) {
+      sessionStorage.setItem("pending_join_code", code.trim());
       router.push("/join/name");
       return;
     }

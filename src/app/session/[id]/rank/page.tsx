@@ -73,6 +73,7 @@ export default function RankPage() {
   const [newDish, setNewDish] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const addInputRef = useRef<HTMLInputElement>(null);
+  const confirmingRef = useRef(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -138,9 +139,11 @@ setIsHost(!!playerId && data.hostPlayerId === playerId);
   }
 
   async function confirmAddDish() {
+    if (confirmingRef.current) return;
     const name = newDish.trim();
     if (!name) { setAddingDish(false); return; }
 
+    confirmingRef.current = true;
     const playerId = sessionStorage.getItem("playerId");
     const guestToken = sessionStorage.getItem("guestToken");
 
@@ -152,11 +155,12 @@ setIsHost(!!playerId && data.hostPlayerId === playerId);
 
     if (res.ok) {
       const dish = await res.json();
-      setDishes((prev) => [...prev, dish]);
+      setDishes((prev) => prev.some((d) => d.id === dish.id) ? prev : [...prev, dish]);
     }
 
     setNewDish("");
     setAddingDish(false);
+    confirmingRef.current = false;
   }
 
   async function handleSubmit() {
