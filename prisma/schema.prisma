@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum SessionStatus {
+  lobby
+  ranking
+  results
+  archived
+
+  @@map("session_status")
+}
+
+// ─── Restaurants ──────────────────────────────────────────────────────────────
+
+model Restaurant {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String   @db.VarChar(255)
+  addressLine     String?  @map("address_line") @db.VarChar(255)
+  city            String?  @db.VarChar(100)
+  state           String?  @db.VarChar(100)
+  country         String?  @db.VarChar(100)
+  lat             Decimal? @db.Decimal(9, 6)
+  lng             Decimal? @db.Decimal(9, 6)
+  externalPlaceId String?  @map("external_place_id") @db.VarChar(500)
+  cuisineType     String?  @map("cuisine_type") @db.VarChar(100)
+  isManualEntry   Boolean  @default(false) @map("is_manual_entry")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  sessions Session[]
+  dishes   Dish[]
+  rankings Ranking[]
+
+  @@index([externalPlaceId], name: "idx_restaurants_place_id")
+  @@map("restaurants")
+}
+
+// ─── Identity ─────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email         String    @unique @db.VarChar(255)
+  passwordHash  String?   @map("password_hash")
+  displayName   String    @map("display_name") @db.VarChar(50)
+  avatarUrl     String?   @map("avatar_url")
+  emailVerified Boolean   @default(false) @map("email_verified")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz()
+
+  oauthAccounts    OauthAccount[]
+  hostedSessions   Session[]         @relation("HostUser")
+  sessionPlayers   SessionPlayer[]
+  userSessionLinks UserSessionLink[]
+
+  @@map("users")
+}
+
+model OauthAccount {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  provider       String    @db.VarChar(50)
+  providerUid    String    @map("provider_uid") @db.VarChar(255)
+  accessToken    String?   @map("access_token")
+  refreshToken   String?   @map("refresh_token")
+  tokenExpiresAt DateTime? @map("token_expires_at") @db.Timestamptz()
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerUid], name: "idx_oauth_provider_uid")
+  @@map("oauth_accounts")
+}
+
+// ─── Game ─────────────────────────────────────────────────────────────────────
+
+model Session {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  joinCode          String        @unique @map("join_code") @db.VarChar(10)
+  restaurantId      String        @map("restaurant_id") @db.Uuid
+  hostUserId        String?       @map("host_user_id") @db.Uuid
+  hostPlayerId      String?       @unique @map("host_player_id") @db.Uuid
+  status            SessionStatus @default(lobby)
+  maxPlayers        Int           @default(20) @map("max_players") @db.SmallInt
+  maxDishes         Int           @default(20) @map("max_dishes") @db.SmallInt
+  rankingStartedAt  DateTime?     @map("ranking_started_at") @db.Timestamptz()
+  resultsRevealedAt DateTime?     @map("results_revealed_at") @db.Timestamptz()
+  expiresAt         DateTime      @default(dbgenerated("now() + interval '24 hours'")) @map("expires_at") @db.Timestamptz()
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  restaurant Restaurant      @relation(fields: [restaurantId], references: [id])
+  hostUser   User?           @relation("HostUser", fields: [hostUserId], references: [id])
+  hostPlayer SessionPlayer?  @relation("HostPlayer", fields: [hostPlayerId], references: [id])
+  players    SessionPlayer[] @relation("SessionPlayers")
+  dishes     Dish[]
+  rankings   Ranking[]
+  insights   SessionInsight?
+
+  @@index([joinCode], name: "idx_sessions_join_code")
+  @@index([restaurantId], name: "idx_sessions_restaurant")
+  @@index([status, expiresAt], name: "idx_sessions_status_expires")
+  @@index([hostUserId], name: "idx_sessions_host_user")
+  @@map("sessions")
+}
+
+model SessionPlayer {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId   String    @map("session_id") @db.Uuid
+  userId      String?   @map("user_id") @db.Uuid
+  guestToken  String?   @map("guest_token") @db.VarChar(64)
+  displayName String    @map("display_name") @db.VarChar(50)
+  isHost      Boolean   @default(false) @map("is_host")
+  joinedAt    DateTime  @default(now()) @map("joined_at") @db.Timestamptz()
+  submittedAt DateTime? @map("submitted_at") @db.Timestamptz()
+
+  session         Session          @relation("SessionPlayers", fields: [sessionId], references: [id])
+  user            User?            @relation(fields: [userId], references: [id])
+  rankings        Ranking[]
+  userSessionLink UserSessionLink?
+  hostedSession   Session?         @relation("HostPlayer")
+
+  @@index([sessionId], name: "idx_sp_session")
+  @@index([userId], name: "idx_sp_user")
+  @@index([sessionId, guestToken], name: "idx_sp_guest_token")
+  @@index([sessionId, submittedAt], name: "idx_sp_submitted")
+  @@map("session_players")
+}
+
+model Dish {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId    String    @map("session_id") @db.Uuid
+  restaurantId String    @map("restaurant_id") @db.Uuid
+  name         String    @db.VarChar(150)
+  sortOrder    Int       @default(0) @map("sort_order") @db.SmallInt
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz()
+
+  session    Session    @relation(fields: [sessionId], references: [id])
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  rankings   Ranking[]
+
+  mostLovedInsights SessionInsight[] @relation("MostLovedDish")
+  nachoTypeInsights SessionInsight[] @relation("NachoTypeDish")
+  hotColdInsights   SessionInsight[] @relation("HotColdDish")
+
+  @@index([sessionId], name: "idx_dishes_session")
+  @@index([restaurantId], name: "idx_dishes_restaurant")
+  @@map("dishes")
+}
+
+model Ranking {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionPlayerId String    @map("session_player_id") @db.Uuid
+  dishId          String    @map("dish_id") @db.Uuid
+  sessionId       String    @map("session_id") @db.Uuid
+  restaurantId    String    @map("restaurant_id") @db.Uuid
+  rankPosition    Int       @map("rank_position") @db.SmallInt
+  submittedAt     DateTime? @map("submitted_at") @db.Timestamptz()
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  sessionPlayer SessionPlayer @relation(fields: [sessionPlayerId], references: [id])
+  dish          Dish          @relation(fields: [dishId], references: [id])
+  session       Session       @relation(fields: [sessionId], references: [id])
+  restaurant    Restaurant    @relation(fields: [restaurantId], references: [id])
+
+  @@unique([sessionPlayerId, dishId], name: "uq_ranking_player_dish")
+  @@index([sessionId], name: "idx_rankings_session")
+  @@index([sessionPlayerId], name: "idx_rankings_player")
+  @@index([restaurantId, dishId], name: "idx_rankings_restaurant_dish")
+  @@map("rankings")
+}
+
+// ─── Results ──────────────────────────────────────────────────────────────────
+
+model SessionInsight {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId          String   @unique @map("session_id") @db.Uuid
+  mostLovedDishId    String?  @map("most_loved_dish_id") @db.Uuid
+  nachoTypeDishId    String?  @map("nacho_type_dish_id") @db.Uuid
+  hotColdDishId      String?  @map("hot_cold_dish_id") @db.Uuid
+  dishAvgRanks       Json     @default("{}") @map("dish_avg_ranks")
+  dishRankVariance   Json     @default("{}") @map("dish_rank_variance")
+  playerCorrelations Json     @default("{}") @map("player_correlations")
+  playerBestBuds     Json     @default("{}") @map("player_best_buds")
+  computedAt         DateTime @default(now()) @map("computed_at") @db.Timestamptz()
+
+  session       Session @relation(fields: [sessionId], references: [id])
+  mostLovedDish Dish?   @relation("MostLovedDish", fields: [mostLovedDishId], references: [id])
+  nachoTypeDish Dish?   @relation("NachoTypeDish", fields: [nachoTypeDishId], references: [id])
+  hotColdDish   Dish?   @relation("HotColdDish", fields: [hotColdDishId], references: [id])
+
+  @@index([sessionId], name: "idx_insights_session")
+  @@map("session_insights")
+}
+
+// ─── Account Linking ──────────────────────────────────────────────────────────
+
+model UserSessionLink {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  sessionPlayerId String   @unique @map("session_player_id") @db.Uuid
+  sessionId       String   @map("session_id") @db.Uuid
+  linkedAt        DateTime @default(now()) @map("linked_at") @db.Timestamptz()
+
+  user          User          @relation(fields: [userId], references: [id])
+  sessionPlayer SessionPlayer @relation(fields: [sessionPlayerId], references: [id])
+
+  @@index([userId], name: "idx_usl_user")
+  @@map("user_session_links")
+}
