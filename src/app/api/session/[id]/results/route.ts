@@ -23,7 +23,7 @@ export async function GET(
       include: {
         restaurant: { select: { name: true } },
         dishes: { where: { deletedAt: null }, select: { id: true, name: true } },
-        players: { select: { id: true, displayName: true } },
+        players: { select: { id: true, displayName: true, user: { select: { displayName: true } } } },
         insights: true,
       },
     });
@@ -41,10 +41,10 @@ export async function GET(
       .map((d) => ({ id: d.id, name: d.name, avgRank: dishAvgRanks[d.id] ?? 999 }))
       .sort((a, b) => a.avgRank - b.avgRank);
 
-    // Players with match %
+    // Players with match % — prefer linked User.displayName over stored session name
     const players = session.players.map((p) => ({
       id: p.id,
-      displayName: p.displayName,
+      displayName: p.user?.displayName ?? p.displayName,
       matchPercent: playerCorrelations[p.id] ?? 0,
     }));
 
@@ -77,7 +77,7 @@ export async function GET(
 
     // Insight details
     const dishMap = Object.fromEntries(session.dishes.map((d) => [d.id, d.name]));
-    const playerMap = Object.fromEntries(session.players.map((p) => [p.id, p.displayName]));
+    const playerMap = Object.fromEntries(session.players.map((p) => [p.id, p.user?.displayName ?? p.displayName]));
 
     const firstCounts: Record<string, number> = {};
     const lastCounts: Record<string, number> = {};

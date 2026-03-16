@@ -23,7 +23,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 type Dish = { id: string; name: string };
 
-function SortableItem({ dish, onRemove }: { dish: Dish; onRemove: () => void }) {
+function SortableItem({ dish, onRemove }: { dish: Dish; onRemove?: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: dish.id });
 
@@ -53,13 +53,15 @@ function SortableItem({ dish, onRemove }: { dish: Dish; onRemove: () => void }) 
         </svg>
       </button>
       <span className="flex-1 text-[#646464] text-base font-medium">{dish.name}</span>
-      <button
-        onClick={onRemove}
-        className="text-[#979797] hover:text-[#646464] ml-3 text-xl leading-none flex-shrink-0"
-        aria-label={`Remove ${dish.name}`}
-      >
-        ×
-      </button>
+      {onRemove && (
+        <button
+          onClick={onRemove}
+          className="text-[#979797] hover:text-[#646464] ml-3 text-xl leading-none flex-shrink-0"
+          aria-label={`Remove ${dish.name}`}
+        >
+          ×
+        </button>
+      )}
     </div>
   );
 }
@@ -103,19 +105,19 @@ setIsHost(!!playerId && data.hostPlayerId === playerId);
       .channel(`rank-dishes:${id}`)
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "dishes",
-          filter: `session_id=eq.${id}`,
-        },
+        { event: "INSERT", schema: "public", table: "dishes", filter: `session_id=eq.${id}` },
         (payload) => {
           const newDish = { id: payload.new.id as string, name: payload.new.name as string };
-          // Don't add if this player is the host (they already have it locally)
-          setDishes((prev) => {
-            if (prev.some((d) => d.id === newDish.id)) return prev;
-            return [...prev, newDish];
-          });
+          setDishes((prev) => prev.some((d) => d.id === newDish.id) ? prev : [...prev, newDish]);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "dishes", filter: `session_id=eq.${id}` },
+        (payload) => {
+          if (payload.new.deleted_at) {
+            setDishes((prev) => prev.filter((d) => d.id !== payload.new.id));
+          }
         }
       )
       .subscribe();
@@ -134,8 +136,15 @@ setIsHost(!!playerId && data.hostPlayerId === playerId);
     }
   }
 
-  function removeDish(dishId: string) {
+  async function removeDish(dishId: string) {
     setDishes((prev) => prev.filter((d) => d.id !== dishId));
+    const playerId = sessionStorage.getItem("playerId");
+    const guestToken = sessionStorage.getItem("guestToken");
+    await fetch(`/api/session/${id}/dishes`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dishId, playerId, guestToken }),
+    });
   }
 
   async function confirmAddDish() {
@@ -205,7 +214,7 @@ setIsHost(!!playerId && data.hostPlayerId === playerId);
                   {i + 1}.
                 </span>
                 <div className="flex-1">
-                  <SortableItem dish={dish} onRemove={() => removeDish(dish.id)} />
+                  <SortableItem dish={dish} onRemove={isHost ? () => removeDish(dish.id) : undefined} />
                 </div>
               </div>
             ))}

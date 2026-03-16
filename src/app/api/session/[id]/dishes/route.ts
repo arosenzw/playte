@@ -44,3 +44,23 @@ export async function POST(
     return NextResponse.json({ error: "Failed to add dish" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const { dishId, playerId, guestToken } = await request.json();
+
+  const player = await prisma.sessionPlayer.findFirst({
+    where: { id: playerId, sessionId: id, guestToken, isHost: true },
+  });
+  if (!player) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+  await prisma.dish.update({
+    where: { id: dishId },
+    data: { deletedAt: new Date() },
+  });
+
+  return NextResponse.json({ ok: true });
+}

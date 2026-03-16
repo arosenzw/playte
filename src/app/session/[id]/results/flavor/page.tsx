@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { FlavorJourneyShareCard } from "@/components/ui/ShareCards/FlavorJourneyShareCard";
 import { pregenerateBlob, shareBlob } from "@/lib/shareImage";
+import AccountStatus from "@/components/ui/AccountStatus";
 
 type Insights = {
   mostLoved: { name: string; count: number } | null;
@@ -46,8 +47,10 @@ function InsightCard({
 export default function FlavorJourneyPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<Data | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [saved, setSaved] = useState(() => typeof window !== "undefined" && sessionStorage.getItem(`saved_${id}`) === "1");
   const cardRef = useRef<HTMLDivElement>(null!);
   const cachedBlob = useRef<Blob | null>(null);
 
@@ -80,8 +83,34 @@ export default function FlavorJourneyPage() {
     router.push(`/session/${id}/results/players`);
   }
 
+  async function handleSave() {
+    const playerId = sessionStorage.getItem("playerId");
+    const userId = sessionStorage.getItem("userId");
+
+    if (!userId) {
+      router.push(`/auth?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
+    const res = await fetch("/api/auth/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId: id, playerId }),
+    });
+    if (res.ok) { sessionStorage.setItem(`saved_${id}`, "1"); setSaved(true); }
+  }
+
+  useEffect(() => {
+    if (searchParams.get("autosave") === "1") {
+      const userId = sessionStorage.getItem("userId");
+      if (userId && !saved) handleSave();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   return (
-    <main className="h-dvh bg-[#FFF8E8] flex flex-col">
+    <main className="h-dvh bg-[#FFF8E8] flex flex-col relative">
+      <AccountStatus corner />
       {data && (
         <div style={{ position: "fixed", top: 0, left: "-9999px", pointerEvents: "none" }}>
           <FlavorJourneyShareCard restaurantName={data.restaurant.name} insights={data.insights} cardRef={cardRef} />
@@ -118,17 +147,25 @@ export default function FlavorJourneyPage() {
           >
             {sharing ? "generating..." : "share flavor journey"}
           </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => router.push(`/session/${id}/results`)}
+              className="flex-1 bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
+            >
+              table results
+            </button>
+            <button
+              onClick={goToMyRankings}
+              className="flex-1 bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
+            >
+              individual rankings
+            </button>
+          </div>
           <button
-            onClick={() => router.push(`/session/${id}/results`)}
-            className="w-full bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
+            onClick={handleSave}
+            className={`w-full bg-white border-2 border-[#FCCC75] text-sm font-semibold py-2.5 rounded-full ${saved ? "text-[#FE392D]" : "text-[#646464]"}`}
           >
-            table results
-          </button>
-          <button
-            onClick={goToMyRankings}
-            className="w-full bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
-          >
-            individual rankings
+            {saved ? "saved ✓" : "save to account"}
           </button>
         </div>
       </div>

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
+import AccountStatus from "@/components/ui/AccountStatus";
 
 export default function Landing() {
   return (
-    <main className="min-h-dvh bg-[#FFF8E8] flex flex-col items-center justify-between px-6 py-16">
+    <main className="min-h-dvh bg-[#FFF8E8] flex flex-col items-center justify-between px-6 py-16 relative">
       {/* Logo */}
       <div className="flex-1 flex flex-col items-center justify-center gap-2">
         <span className="text-[#F0B84B] text-4xl font-semibold tracking-wide">
@@ -18,6 +19,8 @@ export default function Landing() {
           className="w-full max-w-[340px]"
         />
       </div>
+
+      <AccountStatus corner />
 
       {/* CTAs */}
       <div className="w-full max-w-sm flex flex-col gap-4">
