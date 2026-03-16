@@ -106,20 +106,26 @@ export default function ResultsDishesPage() {
         </div>
       </div>
 
-      <div className="flex-shrink-0 px-6 pb-8 pt-4 flex flex-col gap-3 bg-[#FFF8E8] w-full items-center">
-        <div className="w-full max-w-sm flex flex-col gap-3">
+      <div className="flex-shrink-0 px-6 pb-8 pt-4 flex flex-col gap-2 bg-[#FFF8E8] w-full items-center">
+        <div className="w-full max-w-sm flex flex-col gap-2">
           <button
             onClick={handleShare}
             disabled={sharing || !data}
-            className="w-full bg-[#FE392D] text-white text-xl font-semibold py-4 rounded-full disabled:opacity-60"
+            className="w-full bg-[#FE392D] text-white text-base font-semibold py-3 rounded-full disabled:opacity-60"
           >
             {sharing ? "generating..." : "share results"}
           </button>
           <button
             onClick={() => router.push(`/session/${id}/results/flavor`)}
-            className="w-full bg-[#F88888] text-white text-xl font-semibold py-4 rounded-full"
+            className="w-full bg-[#F88888] text-white text-base font-semibold py-3 rounded-full"
           >
-            flavor journey →
+            flavor journey
+          </button>
+          <button
+            onClick={() => router.push(`/session/${id}/results/players`)}
+            className="w-full bg-[#F88888] text-white text-base font-semibold py-3 rounded-full"
+          >
+            individual rankings
           </button>
         </div>
       </div>

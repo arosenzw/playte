@@ -53,6 +53,11 @@ export default function LobbyPage() {
     return () => { supabase.removeChannel(channel); };
   }, [id]);
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
   async function handleStart() {
     if (playerCount < 2 || starting) return;
     setStarting(true);
@@ -68,26 +73,22 @@ export default function LobbyPage() {
   const canStart = playerCount >= 2;
 
   return (
-    <main className="min-h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-16 pb-10">
+    <main className="fixed inset-0 bg-[#FFF8E8] flex flex-col items-center px-6 pt-8 pb-6">
       {/* Logo */}
-      <Image src="/logo.png" alt="playte" width={80} height={80} priority />
+      <Image src="/logo.png" alt="playte" width={56} height={56} priority />
 
-      {/* Header */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-        <h1 className="text-[#FE392D] text-4xl font-bold">gather around</h1>
-        <p className="text-[#6B7280] italic text-base">share this PIN with your table</p>
-
-        {/* Join code */}
-        <p className="text-[#FE392D] text-6xl font-bold tracking-wider mt-8">
+      {/* Centered content */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center w-full max-w-sm">
+        <h1 className="text-[#FE392D] text-3xl font-bold">gather around</h1>
+        <p className="text-[#6B7280] italic text-sm">share this PIN with your table</p>
+        <p className="text-[#FE392D] text-4xl font-bold tracking-wider mt-1">
           {joinCode ?? "------"}
         </p>
-
-        {/* QR code */}
         {joinCode && (
-          <div className="mt-6 p-4 bg-white rounded-2xl shadow-sm">
+          <div className="mt-1 p-2 bg-white rounded-2xl shadow-sm">
             <QRCodeSVG
               value={`${typeof window !== "undefined" ? window.location.origin : ""}/join/code?code=${joinCode}`}
-              size={160}
+              size={90}
               fgColor="#FE392D"
               bgColor="#FFFFFF"
             />
@@ -95,15 +96,15 @@ export default function LobbyPage() {
         )}
       </div>
 
-      {/* Bottom */}
-      <div className="w-full max-w-sm flex flex-col items-center gap-3">
-        <p className="text-[#6B7280] text-base">
+      {/* Button pinned at bottom */}
+      <div className="w-full max-w-sm flex flex-col items-center gap-2">
+        <p className="text-[#6B7280] text-sm">
           {canStart ? `${playerCount} people joined` : "Waiting for playters..."}
         </p>
         <button
           onClick={handleStart}
           disabled={!canStart || starting}
-          className={`w-full text-white text-2xl font-semibold py-5 rounded-full transition-colors ${
+          className={`w-full text-white text-xl font-semibold py-4 rounded-full transition-colors ${
             canStart ? "bg-[#FE392D]" : "bg-[#F88888]"
           }`}
         >

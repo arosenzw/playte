@@ -56,9 +56,6 @@ export default function ResultsPlayersPage() {
   return (
     <main className="h-dvh bg-[#FFF8E8] flex flex-col">
       <div className="flex-1 overflow-y-auto flex flex-col items-center px-6 pt-10 pb-4">
-        <button onClick={() => router.back()} className="self-start text-[#9CA3AF] italic text-sm mb-2">
-          ← flavor journey
-        </button>
         <Image src="/logo.png" alt="playte" width={70} height={70} priority />
         <p className="text-[#9CA3AF] italic text-sm mt-2">{data?.restaurant.name ?? ""}</p>
         <h1 className="text-[#FE392D] text-3xl font-bold mt-1">playters</h1>
@@ -68,6 +65,23 @@ export default function ResultsPlayersPage() {
           {others.map((player) => (
             <PlayerCard key={player.id} player={player} isMe={false} />
           ))}
+        </div>
+      </div>
+
+      <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-[#FFF8E8] w-full flex justify-center">
+        <div className="w-full max-w-sm flex flex-col gap-2">
+          <button
+            onClick={() => router.push(`/session/${id}/results`)}
+            className="w-full bg-[#F88888] text-white text-base font-semibold py-3 rounded-full"
+          >
+            table results
+          </button>
+          <button
+            onClick={() => router.push(`/session/${id}/results/flavor`)}
+            className="w-full bg-[#F88888] text-white text-base font-semibold py-3 rounded-full"
+          >
+            flavor journey
+          </button>
         </div>
       </div>
     </main>

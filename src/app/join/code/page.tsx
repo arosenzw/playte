@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
-export default function JoinCodePage() {
+function JoinCodeForm() {
   const searchParams = useSearchParams();
   const prefill = searchParams.get("code") ?? "";
   const [code, setCode] = useState(prefill.toUpperCase());
@@ -96,5 +96,13 @@ export default function JoinCodePage() {
         </button>
       </div>
     </main>
+  );
+}
+
+export default function JoinCodePage() {
+  return (
+    <Suspense>
+      <JoinCodeForm />
+    </Suspense>
   );
 }
