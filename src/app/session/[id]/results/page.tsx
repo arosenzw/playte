@@ -18,8 +18,19 @@ export default function ResultsDishesPage() {
   const [listVisible, setListVisible] = useState(false);
   const [podiumDelay, setPodiumDelay] = useState<number | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [plateSrc, setPlateSrc] = useState("/plate.png");
   const cardRef = useRef<HTMLDivElement>(null!);
   const cachedBlob = useRef<Blob | null>(null);
+
+  useEffect(() => {
+    fetch("/plate.png")
+      .then((r) => r.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onload = () => setPlateSrc(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+  }, []);
 
   useEffect(() => {
     fetch(`/api/session/${id}/results`)
@@ -41,7 +52,7 @@ export default function ResultsDishesPage() {
     setPodiumDelay(count > 0 ? 900 : 400);
     setTimeout(async () => {
       if (cardRef.current) cachedBlob.current = await pregenerateBlob(cardRef.current);
-    }, 800);
+    }, 1500);
   }, [data]);
 
   async function handleShare() {
@@ -58,7 +69,7 @@ export default function ResultsDishesPage() {
     <main className="h-dvh bg-[#FFF8E8] flex flex-col">
       {data && (
         <div style={{ position: "fixed", top: 0, left: "-9999px", pointerEvents: "none" }}>
-          <PodiumShareCard restaurantName={restaurantName} dishes={data.rankedDishes} cardRef={cardRef} />
+          <PodiumShareCard restaurantName={restaurantName} dishes={data.rankedDishes} cardRef={cardRef} plateSrc={plateSrc} />
         </div>
       )}
 

@@ -77,7 +77,7 @@ export default function LobbyPage() {
         <p className="text-[#6B7280] italic text-base">share this PIN with your table</p>
 
         {/* Join code */}
-        <p className="text-[#FE392D] text-8xl font-bold tracking-wider mt-8">
+        <p className="text-[#FE392D] text-6xl font-bold tracking-wider mt-8">
           {joinCode ?? "------"}
         </p>
       </div>

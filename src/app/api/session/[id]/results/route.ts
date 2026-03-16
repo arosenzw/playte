@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma/client";
 
+function spearman(a: Record<string, number>, b: Record<string, number>): number {
+  const dishes = Object.keys(a).filter((d) => b[d] !== undefined);
+  const n = dishes.length;
+  if (n < 2) return 50;
+  const dSq = dishes.reduce((sum, d) => sum + (a[d] - b[d]) ** 2, 0);
+  const rho = 1 - (6 * dSq) / (n * (n * n - 1));
+  return Math.max(0, Math.round(((rho + 1) / 2) * 100));
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -51,13 +60,19 @@ export async function GET(
       byPlayer[r.sessionPlayerId][r.dishId] = r.rankPosition;
     }
 
+    const viewerRanks = viewerPlayerId ? (byPlayer[viewerPlayerId] ?? {}) : null;
+
     const playersWithRankings = players.map((p) => {
       const playerRanks = byPlayer[p.id] ?? {};
       const rankedByPlayer = session.dishes
         .filter((d) => playerRanks[d.id] !== undefined)
         .map((d) => ({ id: d.id, name: d.name, position: playerRanks[d.id] }))
         .sort((a, b) => a.position - b.position);
-      return { ...p, rankedDishes: rankedByPlayer };
+      // Match % = viewer-vs-this-player (not vs group consensus)
+      const matchPercent = viewerRanks && p.id !== viewerPlayerId
+        ? spearman(viewerRanks, playerRanks)
+        : p.matchPercent;
+      return { ...p, matchPercent, rankedDishes: rankedByPlayer };
     });
 
     // Insight details

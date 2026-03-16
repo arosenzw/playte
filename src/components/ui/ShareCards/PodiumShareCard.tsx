@@ -9,7 +9,7 @@ const MEDAL: Record<number, { bg: string; border: string; text: string }> = {
 const SPACING = 5;
 const PLATE_COUNTS: Record<number, number> = { 1: 8, 2: 5, 3: 3 };
 
-function PlateStack({ count, widthPx }: { count: number; widthPx: number }) {
+function PlateStack({ count, widthPx, plateSrc }: { count: number; widthPx: number; plateSrc: string }) {
   const plateH = Math.round(widthPx * (300 / 450));
   const totalH = plateH + (count - 1) * SPACING;
   return (
@@ -18,7 +18,7 @@ function PlateStack({ count, widthPx }: { count: number; widthPx: number }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           key={i}
-          src="/plate.png"
+          src={plateSrc}
           alt=""
           style={{ position: "absolute", width: "100%", top: i * SPACING, zIndex: count - i, height: plateH, objectFit: "fill" }}
         />
@@ -47,11 +47,13 @@ export function PodiumShareCard({
   handle,
   dishes,
   cardRef,
+  plateSrc = "/plate.png",
 }: {
   restaurantName: string;
   handle?: string;
   dishes: { id: string; name: string }[];
   cardRef: React.RefObject<HTMLDivElement>;
+  plateSrc?: string;
 }) {
   const top3 = dishes.slice(0, 3);
   const [second, first, third] = [top3[1], top3[0], top3[2]];
@@ -99,7 +101,7 @@ export function PodiumShareCard({
             <p style={{ color: "#4B4B4B", fontSize: place === 1 ? 13 : 11, fontWeight: place === 1 ? 600 : 400, textAlign: "center", margin: "6px 0 -18px", lineHeight: 1.3 }}>
               {dish.name}
             </p>
-            <PlateStack count={PLATE_COUNTS[place]} widthPx={width} />
+            <PlateStack count={PLATE_COUNTS[place]} widthPx={width} plateSrc={plateSrc} />
           </div>
         ) : null)}
       </div>

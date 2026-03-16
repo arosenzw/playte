@@ -14,8 +14,10 @@ export default function ResultsPlayersPage() {
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
 
   useEffect(() => {
-    setMyPlayerId(sessionStorage.getItem("playerId"));
-    fetch(`/api/session/${id}/results`)
+    const pid = sessionStorage.getItem("playerId");
+    setMyPlayerId(pid);
+    const qs = pid ? `?playerId=${pid}` : "";
+    fetch(`/api/session/${id}/results${qs}`)
       .then((r) => r.json())
       .then(setData);
   }, [id]);
