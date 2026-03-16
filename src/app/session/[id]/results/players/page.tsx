@@ -52,7 +52,7 @@ export default function ResultsPlayersPage() {
   }
 
   return (
-    <main className="h-screen bg-[#FFF8E8] flex flex-col">
+    <main className="h-dvh bg-[#FFF8E8] flex flex-col">
       <div className="flex-1 overflow-y-auto flex flex-col items-center px-6 pt-10 pb-4">
         <button onClick={() => router.back()} className="self-start text-[#9CA3AF] italic text-sm mb-2">
           ← flavor journey

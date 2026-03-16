@@ -68,7 +68,7 @@ export default function DishEntryPage() {
   const canProceed = dishes.length >= MIN_DISHES && !creating;
 
   return (
-    <main className="min-h-screen bg-[#FFF8E8] flex flex-col items-center px-6 pt-16 pb-10">
+    <main className="min-h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-16 pb-10">
       {/* Logo */}
       <Image src="/logo.png" alt="playte" width={80} height={80} priority />
 

@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function Landing() {
   return (
-    <main className="min-h-screen bg-[#FFF8E8] flex flex-col items-center justify-between px-6 py-16">
+    <main className="min-h-dvh bg-[#FFF8E8] flex flex-col items-center justify-between px-6 py-16">
       {/* Logo */}
       <div className="flex-1 flex flex-col items-center justify-center gap-2">
         <span className="text-[#F0B84B] text-4xl font-semibold tracking-wide">

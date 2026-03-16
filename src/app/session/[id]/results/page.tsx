@@ -55,7 +55,7 @@ export default function ResultsDishesPage() {
   }
 
   return (
-    <main className="h-screen bg-[#FFF8E8] flex flex-col">
+    <main className="h-dvh bg-[#FFF8E8] flex flex-col">
       {data && (
         <div style={{ position: "fixed", top: 0, left: "-9999px", pointerEvents: "none" }}>
           <PodiumShareCard restaurantName={restaurantName} dishes={data.rankedDishes} cardRef={cardRef} />

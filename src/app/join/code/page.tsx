@@ -57,7 +57,7 @@ export default function JoinCodePage() {
   const canJoin = code.trim().length > 0;
 
   return (
-    <main className="min-h-screen bg-[#FFF8E8] flex flex-col items-center px-6 pt-16 pb-10">
+    <main className="min-h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-16 pb-10">
       <Image src="/logo.png" alt="playte" width={80} height={80} priority />
 
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm gap-6">

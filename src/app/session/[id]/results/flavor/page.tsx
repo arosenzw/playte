@@ -81,7 +81,7 @@ export default function FlavorJourneyPage() {
   }
 
   return (
-    <main className="h-screen bg-[#FFF8E8] flex flex-col">
+    <main className="h-dvh bg-[#FFF8E8] flex flex-col">
       {data && (
         <div style={{ position: "fixed", top: 0, left: "-9999px", pointerEvents: "none" }}>
           <FlavorJourneyShareCard restaurantName={data.restaurant.name} insights={data.insights} cardRef={cardRef} />

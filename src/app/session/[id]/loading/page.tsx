@@ -55,7 +55,7 @@ export default function LoadingPage() {
   }, [id, router]);
 
   return (
-    <main className="h-screen bg-[#FE392D] flex flex-col px-8 pt-10 pb-10">
+    <main className="h-dvh bg-[#FE392D] flex flex-col px-8 pt-10 pb-10">
       <div className="flex justify-center">
         <Image src="/logo_long.png" alt="playte" width={200} height={66} priority />
       </div>

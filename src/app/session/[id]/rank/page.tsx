@@ -182,7 +182,7 @@ setIsHost(!!playerId && data.hostPlayerId === playerId);
   }
 
   return (
-    <main className="h-screen bg-[#FFF8E8] flex flex-col items-center px-6 pt-12">
+    <main className="h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-12">
       <Image src="/logo.png" alt="playte" width={70} height={70} priority />
 
       <div className="w-full max-w-sm mt-6 mb-4 text-center flex-shrink-0">
