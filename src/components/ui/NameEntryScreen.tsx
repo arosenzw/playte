@@ -32,7 +32,7 @@ export default function NameEntryScreen({ storageKey, nextRoute }: NameEntryScre
   const hasName = name.trim().length > 0;
 
   return (
-    <main className="min-h-screen bg-[#FFF8E8] flex flex-col items-center px-6 pt-16 pb-10">
+    <main className="h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-16 pb-10">
       {/* Logo */}
       <Image src="/logo.png" alt="playte" width={80} height={80} priority />
 
