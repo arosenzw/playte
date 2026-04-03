@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import AccountStatus from "@/components/ui/AccountStatus";
 
 type Player = { id: string; displayName: string; matchPercent: number };
@@ -85,7 +86,7 @@ export default function ResultsPlayersPage() {
     <main className="h-dvh bg-[#FFF8E8] flex flex-col relative">
       <AccountStatus corner />
       <div className="flex-1 overflow-y-auto flex flex-col items-center px-6 pt-10 pb-4">
-        <Image src="/logo.png" alt="playte" width={70} height={70} priority />
+        <Link href="/"><Image src="/logo.png" alt="playte" width={70} height={70} priority /></Link>
         <p className="text-[#9CA3AF] italic text-sm mt-2">{data?.restaurant.name ?? ""}</p>
         <h1 className="text-[#FE392D] text-3xl font-bold mt-1">playters</h1>
 

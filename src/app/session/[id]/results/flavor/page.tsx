@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { FlavorJourneyShareCard } from "@/components/ui/ShareCards/FlavorJourneyShareCard";
 import { pregenerateBlob, shareBlob } from "@/lib/shareImage";
 import AccountStatus from "@/components/ui/AccountStatus";
@@ -118,7 +119,7 @@ export default function FlavorJourneyPage() {
       )}
 
       <div className="flex-1 overflow-y-auto flex flex-col items-center px-6 pt-10 pb-4">
-        <Image src="/logo_long_red.png" alt="playte" width={180} height={60} priority />
+        <Link href="/"><Image src="/logo_long_red.png" alt="playte" width={180} height={60} priority /></Link>
         <p className="text-[#9CA3AF] italic text-sm mt-1">{data?.restaurant.name ?? ""}</p>
         <h1 className="text-[#FE392D] text-3xl font-bold mt-2 mb-6">Flavor Journey</h1>
 

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Podium } from "@/components/ui/Podium";
 import { PodiumShareCard } from "@/components/ui/ShareCards/PodiumShareCard";
 import { pregenerateBlob, shareBlob } from "@/lib/shareImage";
@@ -103,7 +104,7 @@ export default function ResultsDishesPage() {
       )}
 
       <div className="flex-1 overflow-y-auto flex flex-col items-center px-6 pt-6 pb-4">
-        <Image src="/logo.png" alt="playte" width={56} height={56} priority />
+        <Link href="/"><Image src="/logo.png" alt="playte" width={56} height={56} priority /></Link>
         <p className="text-[#9CA3AF] italic text-sm mt-1 min-h-[1.25rem]">{restaurantName}</p>
         <h1 className="text-[#FE392D] text-2xl font-bold mt-0 mb-4">the results are in.</h1>
 

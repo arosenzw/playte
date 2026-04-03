@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 type SessionSummary = {
@@ -51,7 +52,7 @@ export default function AccountPage() {
   return (
     <main className="h-dvh bg-[#FFF8E8] flex flex-col relative">
       <div className="flex-shrink-0 flex flex-col items-center pt-8 pb-2 px-6">
-        <Image src="/logo.png" alt="playte" width={70} height={70} priority />
+        <Link href="/"><Image src="/logo.png" alt="playte" width={70} height={70} priority /></Link>
         <h1 className="text-[#FE392D] text-2xl font-bold mt-3">my history</h1>
       </div>
 
