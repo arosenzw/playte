@@ -16,7 +16,22 @@ const orienta = Orienta({
 
 export const metadata: Metadata = {
   title: "playte",
-  description: "The social plate ranking game",
+  description: "The dinner table game where you and your crew rank the different elements of your meal — then see if your taste lines up.",
+  metadataBase: new URL("https://letsplayte.com"),
+  openGraph: {
+    title: "playte",
+    description: "The dinner table game where you and your crew rank the different elements of your meal — then see if your taste lines up.",
+    url: "https://letsplayte.com",
+    siteName: "playte",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "playte",
+    description: "The dinner table game where you and your crew rank the different elements of your meal — then see if your taste lines up.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
