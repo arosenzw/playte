@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma/client";
-
-function spearman(a: Record<string, number>, b: Record<string, number>): number {
-  const dishes = Object.keys(a).filter((d) => b[d] !== undefined);
-  const n = dishes.length;
-  if (n < 2) return 50;
-  const dSq = dishes.reduce((sum, d) => sum + (a[d] - b[d]) ** 2, 0);
-  const rho = 1 - (6 * dSq) / (n * (n * n - 1));
-  return Math.max(0, Math.round(((rho + 1) / 2) * 100));
-}
+import { spearman } from "@/lib/insights";
 
 export async function GET(
   request: NextRequest,

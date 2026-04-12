@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma/client";
-
-function spearman(a: Record<string, number>, b: Record<string, number>): number {
-  const dishes = Object.keys(a).filter((d) => b[d] !== undefined);
-  const n = dishes.length;
-  if (n < 2) return 50;
-  const dSq = dishes.reduce((sum, d) => sum + (a[d] - b[d]) ** 2, 0);
-  const rho = 1 - (6 * dSq) / (n * (n * n - 1));
-  return Math.max(0, Math.round(((rho + 1) / 2) * 100));
-}
+import { spearman, computeBestBuds } from "@/lib/insights";
 
 async function computeInsights(sessionId: string) {
   const allRankings = await prisma.ranking.findMany({
@@ -64,18 +56,7 @@ async function computeInsights(sessionId: string) {
     playerCorrelations[playerId] = spearman(playerRanks, consensusRanks);
   }
 
-  // Best buds: for each player, highest correlation with another player
-  const playerBestBuds: Record<string, { playerId: string; match: number }> = {};
-  const playerIds = Object.keys(byPlayer);
-  for (let i = 0; i < playerIds.length; i++) {
-    let best = -1, bestId = "";
-    for (let j = 0; j < playerIds.length; j++) {
-      if (i === j) continue;
-      const corr = spearman(byPlayer[playerIds[i]], byPlayer[playerIds[j]]);
-      if (corr > best) { best = corr; bestId = playerIds[j]; }
-    }
-    if (bestId) playerBestBuds[playerIds[i]] = { playerId: bestId, match: best };
-  }
+  const playerBestBuds = computeBestBuds(byPlayer);
 
   // Hot/cold: find actual min/max rank for the most variance dish
   const hotColdRanks = hotColdDishId ? byDish[hotColdDishId] : [];
