@@ -59,10 +59,12 @@ export default function RestaurantSearchPage() {
     setResults([]);
   }
 
-  function handleNext() {
-    if (!query.trim()) return;
+  const [creating, setCreating] = useState(false);
 
-    // Use selected place data or fall back to manual entry
+  async function handleNext() {
+    if (!query.trim() || creating) return;
+    setCreating(true);
+
     const restaurant = selected ?? {
       placeId: null,
       name: query.trim(),
@@ -72,11 +74,30 @@ export default function RestaurantSearchPage() {
       cuisineType: null,
     };
 
-    sessionStorage.setItem("restaurant", JSON.stringify(restaurant));
-    router.push("/create/dishes");
+    const hostName = sessionStorage.getItem("host_name");
+
+    try {
+      const res = await fetch("/api/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hostName, restaurant, dishes: [] }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      sessionStorage.setItem("sessionId", data.sessionId);
+      sessionStorage.setItem("joinCode", data.joinCode);
+      sessionStorage.setItem("playerId", data.playerId);
+      sessionStorage.setItem("guestToken", data.guestToken);
+
+      router.push("/create/pin");
+    } catch (err) {
+      console.error("Failed to create session:", err);
+      setCreating(false);
+    }
   }
 
-  const canProceed = query.trim().length > 0;
+  const canProceed = query.trim().length > 0 && !creating;
 
   return (
     <main className="min-h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-16 pb-10">
@@ -140,7 +161,7 @@ export default function RestaurantSearchPage() {
             canProceed ? "bg-[#FE392D]" : "bg-[#F88888]"
           }`}
         >
-          next
+          {creating ? "creating..." : "next"}
         </button>
       </div>
     </main>

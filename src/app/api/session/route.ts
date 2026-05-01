@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   try {
     const { hostName, restaurant, dishes } = await request.json();
 
-    if (!hostName || !restaurant || !dishes?.length) {
+    if (!hostName || !restaurant) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 

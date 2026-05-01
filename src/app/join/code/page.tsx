@@ -14,7 +14,11 @@ function JoinCodeForm() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    if (prefill) {
+      handleJoin();
+    } else {
+      inputRef.current?.focus();
+    }
   }, []);
 
   async function handleJoin() {

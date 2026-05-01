@@ -14,6 +14,7 @@ export async function GET(
         _count: { select: { players: true } },
         dishes: { where: { deletedAt: null }, orderBy: { sortOrder: "asc" } },
         restaurant: true,
+        hostPlayer: { select: { displayName: true, user: { select: { displayName: true } } } },
       },
     });
 
@@ -32,6 +33,7 @@ export async function GET(
       playerCount: session._count.players,
       submittedCount,
       hostPlayerId: session.hostPlayerId,
+      hostName: session.hostPlayer?.user?.displayName ?? session.hostPlayer?.displayName ?? null,
       dishes: session.dishes.map((d) => ({ id: d.id, name: d.name, sortOrder: d.sortOrder })),
       restaurant: { name: session.restaurant.name },
     });

@@ -9,6 +9,7 @@ export default function WaitingPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [restaurantName, setRestaurantName] = useState<string | null>(null);
+  const [hostName, setHostName] = useState<string | null>(null);
   const [dots, setDots] = useState(".");
 
   // Fetch session info and poll for status change
@@ -18,6 +19,7 @@ export default function WaitingPage() {
         .then((r) => r.json())
         .then((data) => {
           if (data.restaurant?.name) setRestaurantName(data.restaurant.name);
+          if (data.hostName) setHostName(data.hostName);
           if (data.status === "ranking") {
             router.replace(`/session/${id}/rank`);
           }
@@ -78,7 +80,7 @@ export default function WaitingPage() {
             <span className="text-3xl">🍽️</span>
           </div>
           <p className="text-[#6B7280] text-base">
-            waiting for host to start{dots}
+            waiting for {hostName ?? "host"} to start{dots}
           </p>
         </div>
       </div>

@@ -72,26 +72,51 @@ export default function LobbyPage() {
 
   const canStart = playerCount >= 2;
 
+  async function handleShare() {
+    const url = `${window.location.origin}/join/code?code=${joinCode}`;
+    const text = `join my playte game! use code ${joinCode} or tap the link: ${url}`;
+    if (navigator.share) {
+      await navigator.share({ text });
+    } else {
+      await navigator.clipboard.writeText(url);
+      alert("link copied!");
+    }
+  }
+
   return (
     <main className="fixed inset-0 bg-[#FFF8E8] flex flex-col items-center px-6 pt-8 pb-6">
       {/* Logo */}
       <Image src="/logo.png" alt="playte" width={56} height={56} priority />
 
       {/* Centered content */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center w-full max-w-sm">
-        <h1 className="text-[#FE392D] text-3xl font-bold">gather around</h1>
-        <p className="text-[#6B7280] italic text-sm">share this PIN with your table</p>
-        <p className="text-[#FE392D] text-4xl font-bold tracking-wider mt-1">
-          {joinCode ?? "------"}
-        </p>
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center w-full max-w-sm">
+        <h1 className="text-[#FE392D] text-3xl font-bold">waiting room</h1>
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-[#FE392D] text-6xl font-bold">{playerCount}</span>
+          <span className="text-[#6B7280] italic text-sm">
+            {playerCount === 1 ? "playter joined" : "playters joined"}
+          </span>
+        </div>
+
+        {/* PIN + invite — smaller, secondary */}
         {joinCode && (
-          <div className="mt-1 p-2 bg-white rounded-2xl shadow-sm">
+          <div className="flex items-center gap-3 bg-white/60 rounded-2xl px-4 py-3 mt-2">
             <QRCodeSVG
               value={`${typeof window !== "undefined" ? window.location.origin : ""}/join/code?code=${joinCode}`}
-              size={90}
+              size={56}
               fgColor="#FE392D"
-              bgColor="#FFFFFF"
+              bgColor="transparent"
             />
+            <div className="text-left">
+              <p className="text-[#9CA3AF] text-xs italic">pin</p>
+              <p className="text-[#FE392D] text-2xl font-bold tracking-wider">{joinCode}</p>
+              <button
+                onClick={handleShare}
+                className="text-[#9CA3AF] text-xs underline mt-0.5"
+              >
+                invite via text
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -99,7 +124,7 @@ export default function LobbyPage() {
       {/* Button pinned at bottom */}
       <div className="w-full max-w-sm flex flex-col items-center gap-2">
         <p className="text-[#6B7280] text-sm">
-          {canStart ? `${playerCount} people joined` : "Waiting for playters..."}
+          {canStart ? "everyone in? let's go!" : "need at least 2 playters to start"}
         </p>
         <button
           onClick={handleStart}

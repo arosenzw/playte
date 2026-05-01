@@ -38,24 +38,22 @@ function SortableItem({ dish, onRemove }: { dish: Dish; onRemove?: () => void })
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center bg-[#FCCC75]/20 border-2 border-[#FCCC75] rounded-2xl px-4 py-4"
+      {...attributes}
+      {...listeners}
+      className="flex items-center bg-[#FCCC75]/20 border-2 border-[#FCCC75] rounded-2xl px-4 py-4 touch-none cursor-grab active:cursor-grabbing"
     >
-      <button
-        {...attributes}
-        {...listeners}
-        className="text-[#979797] mr-3 touch-none cursor-grab active:cursor-grabbing flex-shrink-0"
-        aria-label="drag to reorder"
-      >
+      <span className="text-[#979797] mr-3 flex-shrink-0" aria-hidden>
         <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
           <rect y="0" width="20" height="2.5" rx="1.25" fill="currentColor" />
           <rect y="5.75" width="20" height="2.5" rx="1.25" fill="currentColor" />
           <rect y="11.5" width="20" height="2.5" rx="1.25" fill="currentColor" />
         </svg>
-      </button>
+      </span>
       <span className="flex-1 text-[#646464] text-base font-medium">{dish.name}</span>
       {onRemove && (
         <button
-          onClick={onRemove}
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          onPointerDown={(e) => e.stopPropagation()}
           className="text-[#979797] hover:text-[#646464] ml-3 text-xl leading-none flex-shrink-0"
           aria-label={`Remove ${dish.name}`}
         >
@@ -78,8 +76,8 @@ export default function RankPage() {
   const confirmingRef = useRef(false);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } })
   );
 
   useEffect(() => {

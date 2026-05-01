@@ -41,26 +41,23 @@ export default function DishEntryPage() {
     if (dishes.length < MIN_DISHES || creating) return;
     setCreating(true);
 
-    const hostName = sessionStorage.getItem("host_name");
-    const restaurant = JSON.parse(sessionStorage.getItem("restaurant") ?? "{}");
+    const sessionId = sessionStorage.getItem("sessionId");
+    const playerId = sessionStorage.getItem("playerId");
+    const guestToken = sessionStorage.getItem("guestToken");
+    const joinCode = sessionStorage.getItem("joinCode");
 
     try {
-      const res = await fetch("/api/session", {
+      const res = await fetch(`/api/session/${sessionId}/dishes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ hostName, restaurant, dishes }),
+        body: JSON.stringify({ dishes, playerId, guestToken }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error("Failed to add dishes");
 
-      // Store host identity for this session
-      sessionStorage.setItem("playerId", data.playerId);
-      sessionStorage.setItem("guestToken", data.guestToken);
-
-      router.push(`/session/${data.sessionId}/lobby?code=${data.joinCode}`);
+      router.push(`/session/${sessionId}/lobby?code=${joinCode}`);
     } catch (err) {
-      console.error("Failed to create session:", err);
+      console.error("Failed to add dishes:", err);
       setCreating(false);
     }
   }
