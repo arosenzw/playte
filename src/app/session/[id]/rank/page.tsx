@@ -38,22 +38,25 @@ function SortableItem({ dish, onRemove }: { dish: Dish; onRemove?: () => void })
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className="flex items-center bg-[#FCCC75]/20 border-2 border-[#FCCC75] rounded-2xl px-4 py-4 touch-none cursor-grab active:cursor-grabbing"
+      className="flex items-center bg-[#FCCC75]/20 border-2 border-[#FCCC75] rounded-2xl px-4 py-4"
     >
-      <span className="text-[#979797] mr-3 flex-shrink-0" aria-hidden>
-        <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
-          <rect y="0" width="20" height="2.5" rx="1.25" fill="currentColor" />
-          <rect y="5.75" width="20" height="2.5" rx="1.25" fill="currentColor" />
-          <rect y="11.5" width="20" height="2.5" rx="1.25" fill="currentColor" />
+      {/* Drag handle only — larger hit area, touch-none scoped here so scroll still works */}
+      <span
+        {...attributes}
+        {...listeners}
+        className="text-[#979797] mr-3 flex-shrink-0 touch-none cursor-grab active:cursor-grabbing p-2 -m-2"
+        aria-label="drag to reorder"
+      >
+        <svg width="24" height="18" viewBox="0 0 24 18" fill="none">
+          <rect y="0" width="24" height="3" rx="1.5" fill="currentColor" />
+          <rect y="7.5" width="24" height="3" rx="1.5" fill="currentColor" />
+          <rect y="15" width="24" height="3" rx="1.5" fill="currentColor" />
         </svg>
       </span>
       <span className="flex-1 text-[#646464] text-base font-medium">{dish.name}</span>
       {onRemove && (
         <button
-          onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          onPointerDown={(e) => e.stopPropagation()}
+          onClick={onRemove}
           className="text-[#979797] hover:text-[#646464] ml-3 text-xl leading-none flex-shrink-0"
           aria-label={`Remove ${dish.name}`}
         >
