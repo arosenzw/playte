@@ -73,15 +73,33 @@ export default function Landing() {
             className="relative w-full max-w-sm bg-white/70 backdrop-blur-md rounded-3xl px-6 py-7 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-[#FE392D] text-2xl font-bold leading-tight">
-              think you know good food?
-            </h2>
-            <p className="text-[#646464] text-sm mt-3 leading-relaxed">
-              Playte is the dinner table game where you and your crew rank the different elements of your meal — then see if your taste lines up. Top Chef judge energy. Zero culinary school required.
+            <h2 className="text-[#FE392D] text-xl font-bold leading-tight">What is Playte?</h2>
+            <p className="text-[#646464] text-sm mt-2 leading-relaxed">
+              This game is designed for plate sharers, not those who order their own dish.
             </p>
+            <p className="text-[#646464] text-sm mt-1 leading-relaxed">
+              Playte turns your dinner into a game. Rank what you ordered, compare with your table, and find out who actually has taste.
+            </p>
+
+            <h2 className="text-[#FE392D] text-xl font-bold leading-tight mt-5">How to Play</h2>
+            <ol className="mt-2 flex flex-col gap-1.5">
+              {[
+                "After your meal, host inputs your dishes.",
+                "Invite your table.",
+                "Rank, reveal, & argue about it.",
+                "Save to your account.",
+                "Play again next time.",
+              ].map((step, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm text-[#646464]">
+                  <span className="text-[#FE392D] font-bold flex-shrink-0 w-4">{i + 1}.</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+
             <button
               onClick={() => setShowAbout(false)}
-              className="mt-5 w-full bg-[#FE392D] text-white text-sm font-semibold py-3 rounded-full"
+              className="mt-6 w-full bg-[#FE392D] text-white text-sm font-semibold py-3 rounded-full"
             >
               let&apos;s eat
             </button>
