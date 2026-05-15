@@ -99,7 +99,15 @@ export default function ResultsPlayersPage() {
       </div>
 
       <div className="flex-shrink-0 px-6 pb-6 pt-3 bg-[#FFF8E8] w-full flex justify-center">
-        <div className="w-full max-w-sm flex flex-col gap-2">
+        <div className="w-full max-w-sm flex flex-col gap-2 items-center">
+          <a
+            href="https://www.instagram.com/letsplayte"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#9CA3AF] text-xs italic"
+          >
+            tag us @letsplayte
+          </a>
           <div className="flex gap-2">
             <button
               onClick={() => router.push(`/session/${id}/results`)}

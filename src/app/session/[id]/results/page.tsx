@@ -17,7 +17,7 @@ export default function ResultsDishesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [data, setData] = useState<ResultsData | null>(null);
-  const [restaurantName, setRestaurantName] = useState(() => typeof window !== "undefined" ? sessionStorage.getItem(`restaurant_${id}`) ?? "" : "");
+  const [restaurantName, setRestaurantName] = useState("");
   const [listVisible, setListVisible] = useState(false);
   const [podiumDelay, setPodiumDelay] = useState<number | null>(null);
   const [sharing, setSharing] = useState(false);
@@ -35,6 +35,11 @@ export default function ResultsDishesPage() {
         reader.readAsDataURL(blob);
       });
   }, []);
+
+  useEffect(() => {
+    const cached = sessionStorage.getItem(`restaurant_${id}`);
+    if (cached) setRestaurantName(cached);
+  }, [id]);
 
   useEffect(() => {
     fetch(`/api/session/${id}/results`)
@@ -137,14 +142,15 @@ export default function ResultsDishesPage() {
       </div>
 
       <div className="flex-shrink-0 px-6 pb-6 pt-3 flex flex-col gap-2 bg-[#FFF8E8] w-full items-center">
+        <a
+          href="https://www.instagram.com/letsplayte"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#9CA3AF] text-xs italic mb-1"
+        >
+          tag us @letsplayte
+        </a>
         <div className="w-full max-w-sm flex flex-col gap-2">
-          <button
-            onClick={handleShare}
-            disabled={sharing || !data}
-            className="w-full bg-[#FE392D] text-white text-sm font-semibold py-2.5 rounded-full disabled:opacity-60"
-          >
-            {sharing ? "generating..." : "share results"}
-          </button>
           <div className="flex gap-2">
             <button
               onClick={() => router.push(`/session/${id}/results/flavor`)}
@@ -159,6 +165,13 @@ export default function ResultsDishesPage() {
               individual rankings
             </button>
           </div>
+          <button
+            onClick={handleShare}
+            disabled={sharing || !data}
+            className="w-full bg-[#FE392D] text-white text-sm font-semibold py-2.5 rounded-full disabled:opacity-60"
+          >
+            {sharing ? "generating..." : "share results"}
+          </button>
           <button
             onClick={handleSave}
             className={`w-full bg-white border-2 border-[#FCCC75] text-sm font-semibold py-2.5 rounded-full ${saved ? "text-[#FE392D]" : "text-[#646464]"}`}
