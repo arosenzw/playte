@@ -18,7 +18,7 @@ export default function ResultsPlayersPage() {
   const [saved, setSaved] = useState(() => typeof window !== "undefined" && sessionStorage.getItem(`saved_${id}`) === "1");
 
   useEffect(() => {
-    const pid = sessionStorage.getItem("playerId");
+    const pid = searchParams.get("viewerId") ?? sessionStorage.getItem("playerId");
     setMyPlayerId(pid);
     const qs = pid ? `?playerId=${pid}` : "";
     fetch(`/api/session/${id}/results${qs}`)
@@ -99,24 +99,24 @@ export default function ResultsPlayersPage() {
       </div>
 
       <div className="flex-shrink-0 px-6 pb-6 pt-3 bg-[#FFF8E8] w-full flex justify-center">
-        <div className="w-full max-w-sm flex flex-col gap-2 items-center">
+        <div className="w-full max-w-sm flex flex-col gap-2">
           <a
             href="https://www.instagram.com/letsplayte"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#9CA3AF] text-xs italic"
+            className="text-[#9CA3AF] text-xs italic text-center w-full"
           >
             tag us @letsplayte
           </a>
           <div className="flex gap-2">
             <button
-              onClick={() => router.push(`/session/${id}/results`)}
+              onClick={() => router.push(`/session/${id}/results${myPlayerId ? `?viewerId=${myPlayerId}` : ""}`)}
               className="flex-1 bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
             >
               table results
             </button>
             <button
-              onClick={() => router.push(`/session/${id}/results/flavor`)}
+              onClick={() => router.push(`/session/${id}/results/flavor${myPlayerId ? `?viewerId=${myPlayerId}` : ""}`)}
               className="flex-1 bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
             >
               flavor journey

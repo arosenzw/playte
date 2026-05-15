@@ -56,7 +56,7 @@ export default function FlavorJourneyPage() {
   const cachedBlob = useRef<Blob | null>(null);
 
   useEffect(() => {
-    const playerId = sessionStorage.getItem("playerId");
+    const playerId = searchParams.get("viewerId") ?? sessionStorage.getItem("playerId");
     const url = `/api/session/${id}/results${playerId ? `?playerId=${playerId}` : ""}`;
     fetch(url).then((r) => r.json()).then(setData);
   }, [id]);
@@ -81,7 +81,8 @@ export default function FlavorJourneyPage() {
   }
 
   function goToMyRankings() {
-    router.push(`/session/${id}/results/players`);
+    const v = searchParams.get("viewerId");
+    router.push(`/session/${id}/results/players${v ? `?viewerId=${v}` : ""}`);
   }
 
   async function handleSave() {
@@ -158,7 +159,7 @@ export default function FlavorJourneyPage() {
           </button>
           <div className="flex gap-2">
             <button
-              onClick={() => router.push(`/session/${id}/results`)}
+              onClick={() => { const v = searchParams.get("viewerId"); router.push(`/session/${id}/results${v ? `?viewerId=${v}` : ""}`); }}
               className="flex-1 bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
             >
               table results

@@ -68,6 +68,7 @@ export async function GET() {
 
     return {
       sessionId: session.id,
+      playerId: link.sessionPlayer.id,
       restaurantName: session.restaurant.name,
       date,
       playerCount: session.players.length,

@@ -153,13 +153,13 @@ export default function ResultsDishesPage() {
         <div className="w-full max-w-sm flex flex-col gap-2">
           <div className="flex gap-2">
             <button
-              onClick={() => router.push(`/session/${id}/results/flavor`)}
+              onClick={() => { const v = searchParams.get("viewerId"); router.push(`/session/${id}/results/flavor${v ? `?viewerId=${v}` : ""}`); }}
               className="flex-1 bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
             >
               flavor journey
             </button>
             <button
-              onClick={() => router.push(`/session/${id}/results/players`)}
+              onClick={() => { const v = searchParams.get("viewerId"); router.push(`/session/${id}/results/players${v ? `?viewerId=${v}` : ""}`); }}
               className="flex-1 bg-[#F88888] text-white text-sm font-semibold py-2.5 rounded-full"
             >
               individual rankings

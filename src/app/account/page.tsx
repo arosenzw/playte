@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 
 type SessionSummary = {
   sessionId: string;
+  playerId: string;
   restaurantName: string;
   date: string;
   playerCount: number;
@@ -70,7 +71,7 @@ export default function AccountPage() {
             {history.map((item) => (
               <button
                 key={item.sessionId}
-                onClick={() => router.push(`/session/${item.sessionId}/results`)}
+                onClick={() => router.push(`/session/${item.sessionId}/results?viewerId=${item.playerId}`)}
                 className="bg-[#FFFCF5] rounded-2xl px-4 py-4 shadow-sm border-2 border-[#FCCC75] text-left w-full"
               >
                 <p className="text-[#FE392D] text-lg font-semibold leading-tight">
