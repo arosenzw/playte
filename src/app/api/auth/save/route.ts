@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { sessionId, playerId } = await req.json();
+  const { sessionId, playerId, extend } = await req.json();
 
   await prisma.userSessionLink.upsert({
     where: { sessionPlayerId: playerId },
@@ -24,6 +24,14 @@ export async function POST(req: NextRequest) {
     where: { id: playerId },
     data: { userId: user.id },
   });
+
+  if (extend) {
+    const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await prisma.session.update({
+      where: { id: sessionId },
+      data: { expiresAt: thirtyDays },
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }

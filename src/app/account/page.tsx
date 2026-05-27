@@ -6,6 +6,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
+type UpcomingSession = {
+  sessionId: string;
+  playerId: string;
+  restaurantName: string;
+  date: string;
+  joinCode: string;
+};
+
 type SessionSummary = {
   sessionId: string;
   playerId: string;
@@ -17,6 +25,7 @@ type SessionSummary = {
 
 export default function AccountPage() {
   const router = useRouter();
+  const [upcoming, setUpcoming] = useState<UpcomingSession[]>([]);
   const [history, setHistory] = useState<SessionSummary[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +45,10 @@ export default function AccountPage() {
         return r.json();
       })
       .then((data) => {
-        if (data) setHistory(data);
+        if (data) {
+          setUpcoming(data.upcoming ?? []);
+          setHistory(data.history ?? []);
+        }
       })
       .finally(() => setLoading(false));
   }, [router]);
@@ -59,35 +71,63 @@ export default function AccountPage() {
 
       <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4">
         {loading ? (
-          <p className="text-[#9CA3AF] italic text-sm text-center mt-8">
-            loading...
-          </p>
-        ) : !history || history.length === 0 ? (
-          <p className="text-[#9CA3AF] italic text-sm text-center mt-8">
-            no saved sessions yet. play a game and save your results!
-          </p>
+          <p className="text-[#9CA3AF] italic text-sm text-center mt-8">loading...</p>
         ) : (
           <div className="flex flex-col gap-3 max-w-sm mx-auto">
-            {history.map((item) => (
-              <button
-                key={item.sessionId}
-                onClick={() => router.push(`/session/${item.sessionId}/results?viewerId=${item.playerId}`)}
-                className="bg-[#FFFCF5] rounded-2xl px-4 py-4 shadow-sm border-2 border-[#FCCC75] text-left w-full"
-              >
-                <p className="text-[#FE392D] text-lg font-semibold leading-tight">
-                  {item.restaurantName}
+            {upcoming.length > 0 && (
+              <>
+                <p className="text-[#9CA3AF] text-xs italic text-center">upcoming</p>
+                {upcoming.map((item) => (
+                  <button
+                    key={item.sessionId}
+                    onClick={() => {
+                      sessionStorage.setItem("sessionId", item.sessionId);
+                      sessionStorage.setItem("joinCode", item.joinCode);
+                      sessionStorage.setItem("playerId", item.playerId);
+                      sessionStorage.setItem(`saved_later_${item.sessionId}`, "1");
+                      router.push(`/create/pin`);
+                    }}
+                    className="bg-[#FFFCF5] rounded-2xl px-4 py-4 shadow-sm border-2 border-[#FE392D]/30 text-left w-full"
+                  >
+                    <p className="text-[#FE392D] text-lg font-semibold leading-tight">
+                      {item.restaurantName}
+                    </p>
+                    <p className="text-[#9CA3AF] italic text-xs mt-0.5">saved {item.date}</p>
+                    <p className="text-[#646464] text-xs mt-1">pin: <span className="font-bold tracking-wider">{item.joinCode}</span></p>
+                  </button>
+                ))}
+                {(history ?? []).length > 0 && (
+                  <p className="text-[#9CA3AF] text-xs italic text-center mt-2">past games</p>
+                )}
+              </>
+            )}
+
+            {!history || history.length === 0 ? (
+              upcoming.length === 0 && (
+                <p className="text-[#9CA3AF] italic text-sm text-center mt-8">
+                  no saved sessions yet. play a game and save your results!
                 </p>
-                <p className="text-[#9CA3AF] italic text-xs mt-0.5">
-                  {item.date}
-                </p>
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-[#646464] text-sm">
-                    {item.topDish ? `👑 ${item.topDish}` : "no ranking yet"}
+              )
+            ) : (
+              history.map((item) => (
+                <button
+                  key={item.sessionId}
+                  onClick={() => router.push(`/session/${item.sessionId}/results?viewerId=${item.playerId}`)}
+                  className="bg-[#FFFCF5] rounded-2xl px-4 py-4 shadow-sm border-2 border-[#FCCC75] text-left w-full"
+                >
+                  <p className="text-[#FE392D] text-lg font-semibold leading-tight">
+                    {item.restaurantName}
                   </p>
-                  <p className="text-[#9CA3AF] text-xs">{item.playerCount} players</p>
-                </div>
-              </button>
-            ))}
+                  <p className="text-[#9CA3AF] italic text-xs mt-0.5">{item.date}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-[#646464] text-sm">
+                      {item.topDish ? `👑 ${item.topDish}` : "no ranking yet"}
+                    </p>
+                    <p className="text-[#9CA3AF] text-xs">{item.playerCount} players</p>
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         )}
       </div>
