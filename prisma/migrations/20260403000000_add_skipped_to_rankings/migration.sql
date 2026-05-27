@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "rankings" ALTER COLUMN "rank_position" DROP NOT NULL;
+ALTER TABLE "rankings" ADD COLUMN "skipped" BOOLEAN NOT NULL DEFAULT FALSE;

@@ -50,7 +50,11 @@ function JoinCodeForm() {
 
       sessionStorage.setItem("playerId", data.playerId);
       sessionStorage.setItem("guestToken", data.guestToken);
-      router.push(`/session/${data.sessionId}/waiting`);
+      if (data.status === "ranking") {
+        router.push(`/session/${data.sessionId}/rank`);
+      } else {
+        router.push(`/session/${data.sessionId}/waiting`);
+      }
     } catch {
       setError("Something went wrong");
       setJoining(false);

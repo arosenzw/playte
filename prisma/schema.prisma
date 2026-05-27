@@ -162,7 +162,8 @@ model Ranking {
   dishId          String    @map("dish_id") @db.Uuid
   sessionId       String    @map("session_id") @db.Uuid
   restaurantId    String    @map("restaurant_id") @db.Uuid
-  rankPosition    Int       @map("rank_position") @db.SmallInt
+  rankPosition    Int?      @map("rank_position") @db.SmallInt
+  skipped         Boolean   @default(false) @map("skipped")
   submittedAt     DateTime? @map("submitted_at") @db.Timestamptz()
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
 

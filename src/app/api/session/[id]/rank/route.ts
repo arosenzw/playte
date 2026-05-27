@@ -5,63 +5,82 @@ import { spearman, computeBestBuds } from "@/lib/insights";
 async function computeInsights(sessionId: string) {
   const allRankings = await prisma.ranking.findMany({
     where: { sessionId },
-    select: { sessionPlayerId: true, dishId: true, rankPosition: true },
+    select: { sessionPlayerId: true, dishId: true, rankPosition: true, skipped: true },
   });
 
-  const byPlayer: Record<string, Record<string, number>> = {};
-  const byDish: Record<string, number[]> = {};
+  // Build per-player tried-only rank maps (for Spearman) and skipped sets
+  const rankedByPlayer: Record<string, Record<string, number>> = {};
+  const skippedByPlayer: Record<string, Set<string>> = {};
 
   for (const r of allRankings) {
-    if (!byPlayer[r.sessionPlayerId]) byPlayer[r.sessionPlayerId] = {};
-    byPlayer[r.sessionPlayerId][r.dishId] = r.rankPosition;
-    if (!byDish[r.dishId]) byDish[r.dishId] = [];
-    byDish[r.dishId].push(r.rankPosition);
+    if (!rankedByPlayer[r.sessionPlayerId]) rankedByPlayer[r.sessionPlayerId] = {};
+    if (!skippedByPlayer[r.sessionPlayerId]) skippedByPlayer[r.sessionPlayerId] = new Set();
+    if (r.skipped || r.rankPosition === null) {
+      skippedByPlayer[r.sessionPlayerId].add(r.dishId);
+    } else {
+      rankedByPlayer[r.sessionPlayerId][r.dishId] = r.rankPosition;
+    }
   }
 
+  // Points per player per dish: tried rank #k out of N tried → (N - k + 1) pts; skipped → 0
+  const byDishPoints: Record<string, number[]> = {};
+  for (const [pid, ranks] of Object.entries(rankedByPlayer)) {
+    const n = Object.keys(ranks).length;
+    for (const [dishId, pos] of Object.entries(ranks)) {
+      const pts = n - pos + 1;
+      if (!byDishPoints[dishId]) byDishPoints[dishId] = [];
+      byDishPoints[dishId].push(pts);
+    }
+    for (const dishId of skippedByPlayer[pid] ?? []) {
+      if (!byDishPoints[dishId]) byDishPoints[dishId] = [];
+      byDishPoints[dishId].push(0);
+    }
+  }
+
+  // Group consensus: higher avg points = better rank. Store as dishAvgRanks (avg points, descending is better).
   const dishAvgRanks: Record<string, number> = {};
   const dishRankVariance: Record<string, number> = {};
-  for (const [dishId, ranks] of Object.entries(byDish)) {
-    const avg = ranks.reduce((a, b) => a + b, 0) / ranks.length;
+  for (const [dishId, pts] of Object.entries(byDishPoints)) {
+    const avg = pts.reduce((a, b) => a + b, 0) / pts.length;
     dishAvgRanks[dishId] = avg;
-    dishRankVariance[dishId] = ranks.reduce((sum, r) => sum + (r - avg) ** 2, 0) / ranks.length;
+    dishRankVariance[dishId] = pts.reduce((sum, p) => sum + (p - avg) ** 2, 0) / pts.length;
   }
 
-  // Consensus ranks: dishes sorted by avg rank → position 1, 2, 3...
   const consensusRanks: Record<string, number> = {};
   Object.entries(dishAvgRanks)
-    .sort((a, b) => a[1] - b[1])
+    .sort((a, b) => b[1] - a[1]) // descending points → rank 1
     .forEach(([dishId], i) => { consensusRanks[dishId] = i + 1; });
 
-  // Most loved / nacho type
+  // Most loved: dish ranked #1 most often (among tried dishes)
   const firstCounts: Record<string, number> = {};
   const lastCounts: Record<string, number> = {};
-  for (const playerRanks of Object.values(byPlayer)) {
-    const max = Math.max(...Object.values(playerRanks));
+  for (const playerRanks of Object.values(rankedByPlayer)) {
+    const n = Object.keys(playerRanks).length;
     for (const [dishId, rank] of Object.entries(playerRanks)) {
       if (rank === 1) firstCounts[dishId] = (firstCounts[dishId] ?? 0) + 1;
-      if (rank === max) lastCounts[dishId] = (lastCounts[dishId] ?? 0) + 1;
+      if (rank === n) lastCounts[dishId] = (lastCounts[dishId] ?? 0) + 1;
     }
   }
 
   const mostLovedDishId = Object.entries(firstCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
   const nachoTypeDishId = Object.entries(dishAvgRanks)
     .filter(([id]) => id !== mostLovedDishId)
-    .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    .sort((a, b) => a[1] - b[1])[0]?.[0] ?? null; // lowest avg points (most disliked)
   const hotColdSorted = Object.entries(dishRankVariance).sort((a, b) => b[1] - a[1]);
   const hotColdDishId = (hotColdSorted[0]?.[1] ?? 0) > 0 ? hotColdSorted[0][0] : null;
 
   // Player correlation with group consensus
   const playerCorrelations: Record<string, number> = {};
-  for (const [playerId, playerRanks] of Object.entries(byPlayer)) {
+  for (const [playerId, playerRanks] of Object.entries(rankedByPlayer)) {
     playerCorrelations[playerId] = spearman(playerRanks, consensusRanks);
   }
 
-  const playerBestBuds = computeBestBuds(byPlayer);
+  const playerBestBuds = computeBestBuds(rankedByPlayer, skippedByPlayer);
 
-  // Hot/cold: find actual min/max rank for the most variance dish
-  const hotColdRanks = hotColdDishId ? byDish[hotColdDishId] : [];
-  const hotColdDetail = hotColdDishId
-    ? { high: Math.min(...hotColdRanks), low: Math.max(...hotColdRanks) }
+  // Hot/cold: find actual min/max points for the most variance dish
+  const hotColdPoints = hotColdDishId ? byDishPoints[hotColdDishId] : [];
+  const hotColdDetail = hotColdDishId && hotColdPoints.length > 0
+    ? { high: Math.min(...hotColdPoints), low: Math.max(...hotColdPoints) }
     : null;
 
   await prisma.sessionInsight.upsert({
@@ -86,8 +105,9 @@ export async function POST(
   const { id } = await params;
 
   try {
-    const { playerId, guestToken, rankings } = await request.json();
+    const { playerId, guestToken, rankings, skipped = [] } = await request.json();
     // rankings: [{ dishId: string, rankPosition: number }]
+    // skipped: string[] of dishIds the player didn't try
 
     if (!playerId || !guestToken || !Array.isArray(rankings)) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
@@ -113,7 +133,7 @@ export async function POST(
     await prisma.$transaction([
       // Delete existing rankings for this player in case of resubmit
       prisma.ranking.deleteMany({ where: { sessionPlayerId: playerId, sessionId: id } }),
-      // Create new rankings
+      // Create new rankings for tried dishes
       prisma.ranking.createMany({
         data: rankings.map(({ dishId, rankPosition }: { dishId: string; rankPosition: number }) => ({
           sessionPlayerId: playerId,
@@ -121,6 +141,19 @@ export async function POST(
           sessionId: id,
           restaurantId: session.restaurantId,
           rankPosition,
+          skipped: false,
+          submittedAt: now,
+        })),
+      }),
+      // Create skipped rankings
+      prisma.ranking.createMany({
+        data: (skipped as string[]).map((dishId: string) => ({
+          sessionPlayerId: playerId,
+          dishId,
+          sessionId: id,
+          restaurantId: session.restaurantId,
+          rankPosition: null,
+          skipped: true,
           submittedAt: now,
         })),
       }),

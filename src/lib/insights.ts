@@ -8,12 +8,16 @@ export function spearman(a: Record<string, number>, b: Record<string, number>): 
   return Math.max(0, Math.round(((rho + 1) / 2) * 100));
 }
 
-// Each player gets their highest Spearman match.
+// Each player gets their highest overlap-penalized Spearman match.
+// Match % = Spearman(shared dishes) × (shared / union) to penalize players who tried different dishes.
 // On a tie, prefer a candidate not yet picked by anyone; otherwise pick randomly.
 // Non-ties are never blocked — two players can share the same best bud if that's genuinely their top match.
-export function computeBestBuds(byPlayer: Record<string, Record<string, number>>) {
+export function computeBestBuds(
+  rankedByPlayer: Record<string, Record<string, number>>,
+  skippedByPlayer: Record<string, Set<string>> = {}
+) {
   const result: Record<string, { playerId: string; match: number }> = {};
-  const playerIds = Object.keys(byPlayer);
+  const playerIds = Object.keys(rankedByPlayer);
   const pickedAs = new Set<string>();
 
   for (const id of playerIds) {
@@ -21,7 +25,21 @@ export function computeBestBuds(byPlayer: Record<string, Record<string, number>>
     let candidates: string[] = [];
     for (const otherId of playerIds) {
       if (otherId === id) continue;
-      const corr = spearman(byPlayer[id], byPlayer[otherId]);
+
+      const aRanks = rankedByPlayer[id];
+      const bRanks = rankedByPlayer[otherId];
+      const aSkipped = skippedByPlayer[id] ?? new Set<string>();
+      const bSkipped = skippedByPlayer[otherId] ?? new Set<string>();
+
+      const aTried = Object.keys(aRanks).filter((d) => !aSkipped.has(d));
+      const bTried = Object.keys(bRanks).filter((d) => !bSkipped.has(d));
+      const shared = aTried.filter((d) => bTried.includes(d));
+      const union = new Set([...aTried, ...bTried]);
+
+      const overlapRatio = union.size > 0 ? shared.length / union.size : 0;
+      const rawMatch = spearman(aRanks, bRanks); // uses intersection only internally
+      const corr = Math.round(rawMatch * overlapRatio);
+
       if (corr > best) { best = corr; candidates = [otherId]; }
       else if (corr === best) { candidates.push(otherId); }
     }

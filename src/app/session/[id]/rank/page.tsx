@@ -23,7 +23,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 type Dish = { id: string; name: string };
 
-function SortableItem({ dish, onRemove }: { dish: Dish; onRemove?: () => void }) {
+function SortableItem({ dish, onRemove, onSkip }: { dish: Dish; onRemove?: () => void; onSkip?: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: dish.id });
 
@@ -54,10 +54,19 @@ function SortableItem({ dish, onRemove }: { dish: Dish; onRemove?: () => void })
         </svg>
       </span>
       <span className="flex-1 text-[#646464] text-base font-medium">{dish.name}</span>
+      {onSkip && (
+        <button
+          onClick={onSkip}
+          className="text-[#9CA3AF] hover:text-[#6B7280] ml-3 text-xl leading-none flex-shrink-0 font-bold"
+          aria-label={`Didn't try ${dish.name}`}
+        >
+          −
+        </button>
+      )}
       {onRemove && (
         <button
           onClick={onRemove}
-          className="text-[#979797] hover:text-[#646464] ml-3 text-xl leading-none flex-shrink-0"
+          className="text-[#FE392D]/50 hover:text-[#FE392D] ml-2 text-xl leading-none flex-shrink-0"
           aria-label={`Remove ${dish.name}`}
         >
           ×
@@ -71,7 +80,9 @@ export default function RankPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [dishes, setDishes] = useState<Dish[]>([]);
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [isHost, setIsHost] = useState(false);
+  const [joinCode, setJoinCode] = useState<string | null>(null);
   const [addingDish, setAddingDish] = useState(false);
   const [newDish, setNewDish] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -89,7 +100,9 @@ export default function RankPage() {
       .then((r) => r.json())
       .then((data) => {
         setDishes(data.dishes ?? []);
-setIsHost(!!playerId && data.hostPlayerId === playerId);
+        const host = !!playerId && data.hostPlayerId === playerId;
+        setIsHost(host);
+        if (host) setJoinCode(sessionStorage.getItem("joinCode"));
       });
   }, [id]);
 
@@ -173,6 +186,9 @@ setIsHost(!!playerId && data.hostPlayerId === playerId);
     confirmingRef.current = false;
   }
 
+  const rankedDishes = dishes.filter((d) => !skipped.has(d.id));
+  const skippedDishes = dishes.filter((d) => skipped.has(d.id));
+
   async function handleSubmit() {
     if (submitting || dishes.length === 0) return;
     setSubmitting(true);
@@ -180,12 +196,12 @@ setIsHost(!!playerId && data.hostPlayerId === playerId);
     const playerId = sessionStorage.getItem("playerId");
     const guestToken = sessionStorage.getItem("guestToken");
 
-    const rankings = dishes.map((d, i) => ({ dishId: d.id, rankPosition: i + 1 }));
+    const rankings = rankedDishes.map((d, i) => ({ dishId: d.id, rankPosition: i + 1 }));
 
     const res = await fetch(`/api/session/${id}/rank`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ playerId, guestToken, rankings }),
+      body: JSON.stringify({ playerId, guestToken, rankings, skipped: [...skipped] }),
     });
 
     if (res.ok) {
@@ -204,23 +220,53 @@ setIsHost(!!playerId && data.hostPlayerId === playerId);
         <p className="text-[#9CA3AF] italic text-sm mt-1">
           drag to reorder (favorite at the top)
         </p>
+        <div className="flex items-center justify-center gap-4 mt-2">
+          <span className="flex items-center gap-1 text-xs text-[#9CA3AF]">
+            <span className="text-[#9CA3AF] font-bold text-base leading-none">−</span> didn't try
+          </span>
+          {isHost && (
+            <span className="flex items-center gap-1 text-xs text-[#9CA3AF]">
+              <span className="text-[#FE392D]/50 text-base leading-none">×</span> remove dish
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="w-full max-w-sm flex flex-col gap-3 flex-1 overflow-y-auto pb-4">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={dishes.map((d) => d.id)} strategy={verticalListSortingStrategy}>
-            {dishes.map((dish, i) => (
+          <SortableContext items={rankedDishes.map((d) => d.id)} strategy={verticalListSortingStrategy}>
+            {rankedDishes.map((dish, i) => (
               <div key={dish.id} className="flex items-center gap-3">
                 <span className="text-[#979797] text-sm font-semibold w-5 flex-shrink-0 text-right">
                   {i + 1}.
                 </span>
                 <div className="flex-1">
-                  <SortableItem dish={dish} onRemove={isHost ? () => removeDish(dish.id) : undefined} />
+                  <SortableItem
+                    dish={dish}
+                    onSkip={() => setSkipped((prev) => { const s = new Set(prev); s.add(dish.id); return s; })}
+                    onRemove={isHost ? () => removeDish(dish.id) : undefined}
+                  />
                 </div>
               </div>
             ))}
           </SortableContext>
         </DndContext>
+
+        {skippedDishes.length > 0 && (
+          <div className="mt-1">
+            <p className="text-[#9CA3AF] text-xs italic text-center mb-2">didn't try</p>
+            {skippedDishes.map((dish) => (
+              <button
+                key={dish.id}
+                onClick={() => setSkipped((prev) => { const s = new Set(prev); s.delete(dish.id); return s; })}
+                className="w-full bg-[#F3F4F6] border-2 border-[#E5E7EB] rounded-2xl px-4 py-3 text-[#9CA3AF] text-base text-left mb-2 flex items-center justify-between"
+              >
+                <span>{dish.name}</span>
+                <span className="text-base ml-2">↩</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {isHost && (
           addingDish ? (
@@ -255,7 +301,20 @@ setIsHost(!!playerId && data.hostPlayerId === playerId);
         )}
       </div>
 
-      <div className="w-full max-w-sm py-6 flex-shrink-0">
+      <div className="w-full max-w-sm py-6 flex-shrink-0 flex flex-col gap-3">
+        {isHost && joinCode && (
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}/join/code?code=${joinCode}`;
+              const text = `join my playte game! use code ${joinCode} or tap the link: ${url}`;
+              if (navigator.share) navigator.share({ text });
+              else navigator.clipboard.writeText(text);
+            }}
+            className="text-[#9CA3AF] italic text-sm text-center w-full"
+          >
+            invite via text
+          </button>
+        )}
         <button
           onClick={handleSubmit}
           disabled={submitting || dishes.length === 0}

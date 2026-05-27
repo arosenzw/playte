@@ -7,8 +7,8 @@ import { Podium } from "@/components/ui/Podium";
 import { PodiumShareCard } from "@/components/ui/ShareCards/PodiumShareCard";
 import { pregenerateBlob, shareBlob } from "@/lib/shareImage";
 
-type Dish = { id: string; name: string; position: number };
-type Player = { id: string; displayName: string; matchPercent: number; rankedDishes: Dish[] };
+type Dish = { id: string; name: string; position?: number };
+type Player = { id: string; displayName: string; matchPercent: number; rankedDishes: Dish[]; skippedDishes: Dish[] };
 type Data = { restaurant: { name: string }; players: Player[] };
 
 export default function ResultsIndividualPage() {
@@ -88,6 +88,22 @@ export default function ResultsIndividualPage() {
             </div>
           ))}
         </div>
+
+        {(player?.skippedDishes?.length ?? 0) > 0 && (
+          <div className="w-full max-w-sm mt-4">
+            <p className="text-[#9CA3AF] text-xs italic text-center mb-2">didn't try</p>
+            <div className="flex flex-col gap-2">
+              {player!.skippedDishes.map((dish) => (
+                <div key={dish.id} className="flex items-center gap-3">
+                  <span className="w-6 flex-shrink-0" />
+                  <div className="flex-1 bg-[#F3F4F6] border-2 border-[#E5E7EB] rounded-2xl px-4 py-3">
+                    <span className="text-[#9CA3AF] text-base">{dish.name}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
     </main>

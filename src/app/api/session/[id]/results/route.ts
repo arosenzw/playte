@@ -28,10 +28,10 @@ export async function GET(
     const playerBestBudsRaw = (insights?.playerBestBuds ?? {}) as Record<string, { playerId: string; match: number } | unknown>;
     const hotColdDetail = (playerBestBudsRaw as Record<string, unknown>).hotColdDetail as { high: number; low: number } | null ?? null;
 
-    // Ranked dishes (group consensus)
+    // Ranked dishes (group consensus): dishAvgRanks now stores avg points; higher = better
     const rankedDishes = session.dishes
-      .map((d) => ({ id: d.id, name: d.name, avgRank: dishAvgRanks[d.id] ?? 999 }))
-      .sort((a, b) => a.avgRank - b.avgRank);
+      .map((d) => ({ id: d.id, name: d.name, avgRank: dishAvgRanks[d.id] ?? 0 }))
+      .sort((a, b) => b.avgRank - a.avgRank); // descending points
 
     // Players with match % — prefer linked User.displayName over stored session name
     const players = session.players.map((p) => ({
@@ -43,13 +43,19 @@ export async function GET(
     // Per-player rankings (for individual view)
     const allRankings = await prisma.ranking.findMany({
       where: { sessionId: id },
-      select: { sessionPlayerId: true, dishId: true, rankPosition: true },
+      select: { sessionPlayerId: true, dishId: true, rankPosition: true, skipped: true },
     });
 
     const byPlayer: Record<string, Record<string, number>> = {};
+    const skippedByPlayer: Record<string, string[]> = {};
     for (const r of allRankings) {
-      if (!byPlayer[r.sessionPlayerId]) byPlayer[r.sessionPlayerId] = {};
-      byPlayer[r.sessionPlayerId][r.dishId] = r.rankPosition;
+      if (r.skipped || r.rankPosition === null) {
+        if (!skippedByPlayer[r.sessionPlayerId]) skippedByPlayer[r.sessionPlayerId] = [];
+        skippedByPlayer[r.sessionPlayerId].push(r.dishId);
+      } else {
+        if (!byPlayer[r.sessionPlayerId]) byPlayer[r.sessionPlayerId] = {};
+        byPlayer[r.sessionPlayerId][r.dishId] = r.rankPosition;
+      }
     }
 
     const viewerRanks = viewerPlayerId ? (byPlayer[viewerPlayerId] ?? {}) : null;
@@ -60,11 +66,15 @@ export async function GET(
         .filter((d) => playerRanks[d.id] !== undefined)
         .map((d) => ({ id: d.id, name: d.name, position: playerRanks[d.id] }))
         .sort((a, b) => a.position - b.position);
+      const skippedForPlayer = skippedByPlayer[p.id] ?? [];
+      const skippedDishDetails = session.dishes
+        .filter((d) => skippedForPlayer.includes(d.id))
+        .map((d) => ({ id: d.id, name: d.name }));
       // Match % = viewer-vs-this-player (not vs group consensus)
       const matchPercent = viewerRanks && p.id !== viewerPlayerId
         ? spearman(viewerRanks, playerRanks)
         : p.matchPercent;
-      return { ...p, matchPercent, rankedDishes: rankedByPlayer };
+      return { ...p, matchPercent, rankedDishes: rankedByPlayer, skippedDishes: skippedDishDetails };
     });
 
     // Insight details

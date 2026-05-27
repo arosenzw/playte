@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
-    if (session.status !== "lobby") {
+    if (session.status !== "lobby" && session.status !== "ranking") {
       return NextResponse.json({ error: "Game has already started" }, { status: 400 });
     }
     if (session._count.players >= session.maxPlayers) {
@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       sessionId: session.id,
       playerId: player.id,
       guestToken,
+      status: session.status,
     });
   } catch (error) {
     console.error("Join session error:", error);
