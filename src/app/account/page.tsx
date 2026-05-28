@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 type UpcomingSession = {
   sessionId: string;
   playerId: string;
+  guestToken: string | null;
   restaurantName: string;
   date: string;
   joinCode: string;
@@ -84,6 +85,7 @@ export default function AccountPage() {
                       sessionStorage.setItem("sessionId", item.sessionId);
                       sessionStorage.setItem("joinCode", item.joinCode);
                       sessionStorage.setItem("playerId", item.playerId);
+                      if (item.guestToken) sessionStorage.setItem("guestToken", item.guestToken);
                       sessionStorage.setItem(`saved_later_${item.sessionId}`, "1");
                       router.push(`/create/pin`);
                     }}

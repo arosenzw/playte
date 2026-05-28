@@ -53,6 +53,7 @@ export async function GET() {
       upcoming.push({
         sessionId: session.id,
         playerId: link.sessionPlayer.id,
+        guestToken: link.sessionPlayer.guestToken,
         restaurantName: session.restaurant.name,
         date,
         joinCode: session.joinCode,
