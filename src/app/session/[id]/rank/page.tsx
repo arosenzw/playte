@@ -212,15 +212,17 @@ export default function RankPage() {
   }
 
   return (
-    <main className="h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-12">
-      <Image src="/logo.png" alt="playte" width={70} height={70} priority />
+    <main className="h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-4">
+      <div className="flex items-center gap-2 mb-2 flex-shrink-0">
+        <Image src="/logo.png" alt="playte" width={32} height={32} priority />
+        <h1 className="text-[#FE392D] text-xl font-bold">rank your dishes</h1>
+      </div>
 
-      <div className="w-full max-w-sm mt-6 mb-4 text-center flex-shrink-0">
-        <h1 className="text-[#FE392D] text-3xl font-bold">rank your dishes</h1>
-        <p className="text-[#9CA3AF] italic text-sm mt-1">
+      <div className="w-full max-w-sm mb-2 text-center flex-shrink-0">
+        <p className="text-[#9CA3AF] italic text-xs">
           drag to reorder (favorite at the top)
         </p>
-        <div className="flex items-center justify-center gap-4 mt-2">
+        <div className="flex items-center justify-center gap-4 mt-1">
           <span className="flex items-center gap-1 text-xs text-[#9CA3AF]">
             <span className="text-[#9CA3AF] font-bold text-base leading-none">−</span> didn't try
           </span>

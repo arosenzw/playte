@@ -11,6 +11,30 @@ import AccountStatus from "@/components/ui/AccountStatus";
 
 type Dish = { id: string; name: string; avgRank: number };
 type ResultsData = { restaurant: { name: string }; rankedDishes: Dish[] };
+type Slot = { rank: number; dishes: Dish[] };
+
+function groupIntoSlots(dishes: Dish[]): Slot[] {
+  if (!dishes.length) return [];
+  const slots: Slot[] = [];
+  let rank = 1;
+  let i = 0;
+  while (i < dishes.length) {
+    const avgRank = dishes[i].avgRank;
+    const group: Dish[] = [];
+    while (i + group.length < dishes.length && dishes[i + group.length].avgRank === avgRank) {
+      group.push(dishes[i + group.length]);
+    }
+    slots.push({ rank, dishes: group });
+    rank += 1; // sequential — no position gaps on ties
+    i += group.length;
+  }
+  return slots;
+}
+
+function slotName(slot: Slot): string {
+  if (slot.dishes.length === 1) return slot.dishes[0].name;
+  return slot.dishes.map((d) => d.name).join(" / ") + " TIE";
+}
 
 export default function ResultsDishesPage() {
   const { id } = useParams<{ id: string }>();
@@ -51,14 +75,16 @@ export default function ResultsDishesPage() {
       });
   }, [id]);
 
-  const top3 = data?.rankedDishes.slice(0, 3) ?? [];
-  const rest = data?.rankedDishes.slice(3) ?? [];
+  const slots = groupIntoSlots(data?.rankedDishes ?? []);
+  const podiumSlots = slots.slice(0, 3);
+  const listSlots = slots.slice(3);
+  // Podium expects {id, name} — use first dish id, merged name for ties
+  const top3 = podiumSlots.map((slot) => ({ id: slot.dishes[0].id, name: slotName(slot) }));
 
   useEffect(() => {
     if (!data) return;
-    const count = data.rankedDishes.slice(3).length;
     setTimeout(() => setListVisible(true), 400);
-    setPodiumDelay(count > 0 ? 900 : 400);
+    setPodiumDelay(listSlots.length > 0 ? 900 : 400);
     setTimeout(async () => {
       if (cardRef.current) cachedBlob.current = await pregenerateBlob(cardRef.current);
     }, 1500);
@@ -120,9 +146,9 @@ export default function ResultsDishesPage() {
         )}
 
         <div className="w-full max-w-sm flex flex-col gap-2 mt-6">
-          {rest.map((dish, i) => (
+          {listSlots.map((slot) => (
             <div
-              key={dish.id}
+              key={slot.dishes.map((d) => d.id).join("-")}
               className="flex items-center gap-3"
               style={{
                 opacity: listVisible ? 1 : 0,
@@ -131,10 +157,10 @@ export default function ResultsDishesPage() {
               }}
             >
               <span className="text-[#FE392D] text-lg font-bold w-6 text-right flex-shrink-0">
-                {i + 4}
+                {slot.rank}
               </span>
               <div className="flex-1 bg-[#FCCC75]/20 border-2 border-[#FCCC75] rounded-2xl px-4 py-3">
-                <span className="text-[#646464] text-base">{dish.name}</span>
+                <span className="text-[#646464] text-base">{slotName(slot)}</span>
               </div>
             </div>
           ))}

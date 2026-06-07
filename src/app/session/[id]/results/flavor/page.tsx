@@ -27,7 +27,7 @@ function InsightCard({
   title: string;
   subtitle: string;
   value: string;
-  detail: string;
+  detail?: string;
 }) {
   return (
     <div className="w-full bg-[#FFFCF5] rounded-2xl px-5 py-4 shadow-sm flex flex-col gap-2">
@@ -38,9 +38,11 @@ function InsightCard({
       <div className="bg-[#FCCC75]/20 border-2 border-[#FCCC75] rounded-xl px-4 py-3 text-[#646464] text-base text-center">
         {value}
       </div>
-      <div className="bg-[#FCCC75] rounded-full px-3 py-1 text-[#646464] text-xs text-center self-center">
-        {detail}
-      </div>
+      {detail && (
+        <div className="bg-[#FCCC75] rounded-full px-3 py-1 text-[#646464] text-xs text-center self-center">
+          {detail}
+        </div>
+      )}
     </div>
   );
 }
@@ -131,11 +133,19 @@ export default function FlavorJourneyPage() {
           {ins?.nachoType && (
             <InsightCard emoji="🥴" title="nacho type" subtitle="zero out of ten, respectfully" value={ins.nachoType.name} detail={`ranked last by ${ins.nachoType.count}`} />
           )}
-          {ins?.hotCold && (
-            <InsightCard emoji="😐" title="hot & cold" subtitle="most controversial playte debate" value={ins.hotCold.name} detail={`as high as #${ins.hotCold.highRank}, as low as #${ins.hotCold.lowRank}`} />
+          {ins && (
+            ins.hotCold
+              ? <InsightCard emoji="😐" title="hot & cold" subtitle="most controversial playte debate" value={ins.hotCold.name} detail={`as high as #${ins.hotCold.highRank}, as low as #${ins.hotCold.lowRank}`} />
+              : <InsightCard emoji="😐" title="hot & cold" subtitle="most controversial playte debate" value="No controversy - you're all on the same page" />
           )}
           {ins?.bestBud && (
-            <InsightCard emoji="👯" title="best (taste) buds" subtitle="you should share next time" value={ins.bestBud.displayName} detail={`${ins.bestBud.matchPercent}% match`} />
+            <InsightCard
+              emoji="👯"
+              title="best (taste) buds"
+              subtitle="you should share next time"
+              value={ins.bestBud.matchPercent < 10 ? "you should try dining alone 🍽️" : ins.bestBud.displayName}
+              detail={`${ins.bestBud.matchPercent}% match`}
+            />
           )}
         </div>
       </div>

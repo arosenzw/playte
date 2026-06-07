@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-const MIN_DISHES = 4;
+const MIN_DISHES = 3;
 const MAX_DISHES = 20;
 
 export default function DishEntryPage() {

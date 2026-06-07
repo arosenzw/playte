@@ -70,7 +70,7 @@ export async function GET(
       const skippedDishDetails = session.dishes
         .filter((d) => skippedForPlayer.includes(d.id))
         .map((d) => ({ id: d.id, name: d.name }));
-      // Match % = viewer-vs-this-player (not vs group consensus)
+      // Match % = viewer-vs-this-player (not vs group consensus); null if < 2 shared dishes
       const matchPercent = viewerRanks && p.id !== viewerPlayerId
         ? spearman(viewerRanks, playerRanks)
         : p.matchPercent;

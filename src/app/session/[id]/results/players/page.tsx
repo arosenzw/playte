@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import AccountStatus from "@/components/ui/AccountStatus";
 
-type Player = { id: string; displayName: string; matchPercent: number };
+type Player = { id: string; displayName: string; matchPercent: number | null };
 type Data = { restaurant: { name: string }; players: Player[] };
 
 export default function ResultsPlayersPage() {
@@ -66,12 +66,16 @@ export default function ResultsPlayersPage() {
               {player.displayName}{isMe && <span className="text-[#9CA3AF] text-sm font-normal ml-2">(you)</span>}
             </p>
             {!isMe && (
-              <div className="relative w-full bg-[#FCCC75]/30 rounded-full h-6 mt-2 overflow-hidden">
-                <div className="bg-[#FCCC75] h-full rounded-full" style={{ width: `${player.matchPercent}%` }} />
-                <span className="absolute inset-0 flex items-center justify-center text-[#646464] text-xs font-semibold">
-                  {player.matchPercent}% match
-                </span>
-              </div>
+              player.matchPercent !== null ? (
+                <div className="relative w-full bg-[#FCCC75]/30 rounded-full h-6 mt-2 overflow-hidden">
+                  <div className="bg-[#FCCC75] h-full rounded-full" style={{ width: `${player.matchPercent}%` }} />
+                  <span className="absolute inset-0 flex items-center justify-center text-[#646464] text-xs font-semibold">
+                    {player.matchPercent}% match
+                  </span>
+                </div>
+              ) : (
+                <p className="text-[#9CA3AF] text-xs italic mt-2">didn&apos;t try the same dishes</p>
+              )
             )}
           </div>
           <div className="ml-4 w-12 h-12 rounded-full bg-[#FE392D] flex items-center justify-center flex-shrink-0">

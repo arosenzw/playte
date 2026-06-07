@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma/client";
-import { spearman, computeBestBuds } from "@/lib/insights";
+import { spearman, computeBestBuds, computeScores } from "@/lib/insights";
 
 async function computeInsights(sessionId: string) {
   const allRankings = await prisma.ranking.findMany({
@@ -22,66 +22,27 @@ async function computeInsights(sessionId: string) {
     }
   }
 
-  // Points per player per dish: tried rank #k out of N tried → (N - k + 1) pts; skipped → 0
-  const byDishPoints: Record<string, number[]> = {};
-  for (const [pid, ranks] of Object.entries(rankedByPlayer)) {
-    const n = Object.keys(ranks).length;
-    for (const [dishId, pos] of Object.entries(ranks)) {
-      const pts = n - pos + 1;
-      if (!byDishPoints[dishId]) byDishPoints[dishId] = [];
-      byDishPoints[dishId].push(pts);
-    }
-    for (const dishId of skippedByPlayer[pid] ?? []) {
-      if (!byDishPoints[dishId]) byDishPoints[dishId] = [];
-      byDishPoints[dishId].push(0);
-    }
-  }
-
-  // Group consensus: higher avg points = better rank. Store as dishAvgRanks (avg points, descending is better).
-  const dishAvgRanks: Record<string, number> = {};
-  const dishRankVariance: Record<string, number> = {};
-  for (const [dishId, pts] of Object.entries(byDishPoints)) {
-    const avg = pts.reduce((a, b) => a + b, 0) / pts.length;
-    dishAvgRanks[dishId] = avg;
-    dishRankVariance[dishId] = pts.reduce((sum, p) => sum + (p - avg) ** 2, 0) / pts.length;
-  }
-
-  const consensusRanks: Record<string, number> = {};
-  Object.entries(dishAvgRanks)
-    .sort((a, b) => b[1] - a[1]) // descending points → rank 1
-    .forEach(([dishId], i) => { consensusRanks[dishId] = i + 1; });
-
-  // Most loved: dish ranked #1 most often (among tried dishes)
-  const firstCounts: Record<string, number> = {};
-  const lastCounts: Record<string, number> = {};
-  for (const playerRanks of Object.values(rankedByPlayer)) {
-    const n = Object.keys(playerRanks).length;
-    for (const [dishId, rank] of Object.entries(playerRanks)) {
-      if (rank === 1) firstCounts[dishId] = (firstCounts[dishId] ?? 0) + 1;
-      if (rank === n) lastCounts[dishId] = (lastCounts[dishId] ?? 0) + 1;
-    }
-  }
-
-  const mostLovedDishId = Object.entries(firstCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
-  const nachoTypeDishId = Object.entries(dishAvgRanks)
-    .filter(([id]) => id !== mostLovedDishId)
-    .sort((a, b) => a[1] - b[1])[0]?.[0] ?? null; // lowest avg points (most disliked)
-  const hotColdSorted = Object.entries(dishRankVariance).sort((a, b) => b[1] - a[1]);
-  const hotColdDishId = (hotColdSorted[0]?.[1] ?? 0) > 0 ? hotColdSorted[0][0] : null;
+  const {
+    dishAvgPoints: dishAvgRanks,
+    dishRankVariance,
+    mostLovedDishId,
+    nachoTypeDishId,
+    hotColdDishId,
+    hotColdDetail,
+  } = computeScores(rankedByPlayer, skippedByPlayer);
 
   // Player correlation with group consensus
+  const consensusRanks: Record<string, number> = {};
+  Object.entries(dishAvgRanks)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([dishId], i) => { consensusRanks[dishId] = i + 1; });
+
   const playerCorrelations: Record<string, number> = {};
   for (const [playerId, playerRanks] of Object.entries(rankedByPlayer)) {
-    playerCorrelations[playerId] = spearman(playerRanks, consensusRanks);
+    playerCorrelations[playerId] = spearman(playerRanks, consensusRanks) ?? 0;
   }
 
   const playerBestBuds = computeBestBuds(rankedByPlayer, skippedByPlayer);
-
-  // Hot/cold: find actual min/max points for the most variance dish
-  const hotColdPoints = hotColdDishId ? byDishPoints[hotColdDishId] : [];
-  const hotColdDetail = hotColdDishId && hotColdPoints.length > 0
-    ? { high: Math.min(...hotColdPoints), low: Math.max(...hotColdPoints) }
-    : null;
 
   await prisma.sessionInsight.upsert({
     where: { sessionId },
