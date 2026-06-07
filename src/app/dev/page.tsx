@@ -8,7 +8,7 @@
  * Usage: /dev?session=xxx&player=yyy&token=zzz&code=ABC&host=true&page=rank
  */
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const PAGES = [
@@ -21,6 +21,14 @@ const PAGES = [
 ];
 
 export default function DevPage() {
+  return (
+    <Suspense>
+      <DevPageInner />
+    </Suspense>
+  );
+}
+
+function DevPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -58,7 +66,7 @@ export default function DevPage() {
 
   if (!ready) return null;
 
-  const missing = !searchParams.get("session");
+  const missing = !sessionId;
 
   return (
     <main className="min-h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-16 pb-10 gap-6">
