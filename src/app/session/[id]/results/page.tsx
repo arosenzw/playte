@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Podium } from "@/components/ui/Podium";
+import { Podium, TieBadge } from "@/components/ui/Podium";
 import { PodiumShareCard } from "@/components/ui/ShareCards/PodiumShareCard";
 import { pregenerateBlob, shareBlob } from "@/lib/shareImage";
 import AccountStatus from "@/components/ui/AccountStatus";
@@ -32,8 +32,7 @@ function groupIntoSlots(dishes: Dish[]): Slot[] {
 }
 
 function slotName(slot: Slot): string {
-  if (slot.dishes.length === 1) return slot.dishes[0].name;
-  return slot.dishes.map((d) => d.name).join(" / ") + " TIE";
+  return slot.dishes.map((d) => d.name).join(" / ");
 }
 
 export default function ResultsDishesPage() {
@@ -79,7 +78,7 @@ export default function ResultsDishesPage() {
   const podiumSlots = slots.slice(0, 3);
   const listSlots = slots.slice(3);
   // Podium expects {id, name} — use first dish id, merged name for ties
-  const top3 = podiumSlots.map((slot) => ({ id: slot.dishes[0].id, name: slotName(slot) }));
+  const top3 = podiumSlots.map((slot) => ({ id: slot.dishes[0].id, name: slotName(slot), isTie: slot.dishes.length > 1 }));
 
   useEffect(() => {
     if (!data) return;
@@ -159,8 +158,9 @@ export default function ResultsDishesPage() {
               <span className="text-[#FE392D] text-lg font-bold w-6 text-right flex-shrink-0">
                 {slot.rank}
               </span>
-              <div className="flex-1 bg-[#FCCC75]/20 border-2 border-[#FCCC75] rounded-2xl px-4 py-3">
+              <div className="flex-1 bg-[#FCCC75]/20 border-2 border-[#FCCC75] rounded-2xl px-4 py-3 flex items-center gap-2">
                 <span className="text-[#646464] text-base">{slotName(slot)}</span>
+                {slot.dishes.length > 1 && <TieBadge />}
               </div>
             </div>
           ))}

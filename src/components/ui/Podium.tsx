@@ -20,6 +20,17 @@ const REVEAL_DELAYS: Record<number, number> = { 3: 200, 2: 700, 1: 1200 };
 
 const SPACING = 5;
 
+export function TieBadge() {
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full bg-[#FE392D] text-white font-bold shadow-md mt-1"
+      style={{ width: 28, height: 28, fontSize: 9, letterSpacing: "0.05em" }}
+    >
+      TIE
+    </span>
+  );
+}
+
 function PlateStack({ count, widthPx }: { count: number; widthPx: number }) {
   const plateH = Math.round(widthPx * (300 / 450));
   const totalH = plateH + (count - 1) * SPACING;
@@ -42,11 +53,13 @@ function PlateStack({ count, widthPx }: { count: number; widthPx: number }) {
 function PodiumColumn({
   place,
   name,
+  isTie,
   widthPx,
   visible,
 }: {
   place: 1 | 2 | 3;
   name: string;
+  isTie?: boolean;
   widthPx: number;
   visible: boolean;
 }) {
@@ -78,12 +91,17 @@ function PodiumColumn({
           {place}
         </div>
         <p
-          className={`text-[#4B4B4B] text-center leading-tight mt-1 mb-1 px-1 line-clamp-2 ${
+          className={`text-[#4B4B4B] text-center leading-tight mt-1 px-1 line-clamp-2 ${
             isFirst ? "text-sm font-semibold" : "text-xs"
-          }`}
+          } ${isTie ? "mb-0" : "mb-1"}`}
         >
           {name}
         </p>
+        {isTie && (
+          <div className="flex justify-center mb-1">
+            <TieBadge />
+          </div>
+        )}
       </div>
       <div style={{ marginTop: -18 }} className="w-full">
         <PlateStack count={plates} widthPx={widthPx} />
@@ -95,7 +113,7 @@ function PodiumColumn({
 const W1  = 132;
 const W23 = 99;
 
-export function Podium({ dishes, startDelay = 0 }: { dishes: { id: string; name: string }[]; startDelay?: number }) {
+export function Podium({ dishes, startDelay = 0 }: { dishes: { id: string; name: string; isTie?: boolean }[]; startDelay?: number }) {
   const [visible, setVisible] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
 
   useEffect(() => {
@@ -120,9 +138,9 @@ export function Podium({ dishes, startDelay = 0 }: { dishes: { id: string; name:
 
   return (
     <div className="flex items-end justify-center gap-2 w-full px-2">
-      {second && <PodiumColumn place={2} name={second.name} widthPx={W23} visible={visible[2]} />}
-      {first  && <PodiumColumn place={1} name={first.name}  widthPx={W1}  visible={visible[1]} />}
-      {third  && <PodiumColumn place={3} name={third.name}  widthPx={W23} visible={visible[3]} />}
+      {second && <PodiumColumn place={2} name={second.name} isTie={second.isTie} widthPx={W23} visible={visible[2]} />}
+      {first  && <PodiumColumn place={1} name={first.name}  isTie={first.isTie}  widthPx={W1}  visible={visible[1]} />}
+      {third  && <PodiumColumn place={3} name={third.name}  isTie={third.isTie}  widthPx={W23} visible={visible[3]} />}
     </div>
   );
 }
