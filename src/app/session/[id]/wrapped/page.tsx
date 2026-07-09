@@ -5,7 +5,17 @@ import { useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 type Dish = { id: string; name: string; avgRank: number };
-type ResultsData = { restaurant: { name: string }; rankedDishes: Dish[] };
+type InsightDish = { id: string; name: string; count: number };
+type ResultsData = {
+  restaurant: { name: string };
+  rankedDishes: Dish[];
+  insights: {
+    mostLoved: InsightDish | null;
+    nachoType: InsightDish | null;
+    hotCold: { id: string; name: string; highRank: number; lowRank: number } | null;
+    bestBud: { displayName: string; matchPercent: number } | null;
+  };
+};
 type Slot = { rank: number; dishes: Dish[] };
 
 function groupIntoSlots(dishes: Dish[]): Slot[] {
@@ -95,12 +105,13 @@ function runConfetti(canvas: HTMLCanvasElement) {
 
 // ── Share overlay ─────────────────────────────────────────────────────────────
 function ShareOverlay({
-  visible, sessionId, screen, shareData,
+  visible, sessionId, screen, shareData, bgColor = "#FFF8E8",
 }: {
   visible: boolean;
   sessionId: string;
   screen: string;
   shareData: unknown;
+  bgColor?: string;
 }) {
   const [sharing, setSharing] = useState(false);
 
@@ -136,7 +147,7 @@ function ShareOverlay({
     <div
       className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-4 pt-10"
       style={{
-        background: "linear-gradient(to top, rgba(255,248,232,1) 60%, rgba(255,248,232,0) 100%)",
+        background: `linear-gradient(to top, ${bgColor} 60%, ${bgColor}00 100%)`,
         zIndex: 15,
         opacity: visible ? 1 : 0,
         transition: "opacity 0.5s ease 0.3s",
@@ -148,14 +159,14 @@ function ShareOverlay({
         disabled={sharing}
         className="flex flex-col items-center gap-1 opacity-60 active:opacity-100 transition-opacity"
       >
-        <div className="w-9 h-9 rounded-full bg-black/8 flex items-center justify-center">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "rgba(128,128,128,0.15)" }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: bgColor === "#FFF8E8" ? "#555" : "rgba(255,255,255,0.9)" }}>
             <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
             <polyline points="16 6 12 2 8 6"/>
             <line x1="12" y1="2" x2="12" y2="15"/>
           </svg>
         </div>
-        <span className="text-[10px] font-bold text-[#888] tracking-wide">
+        <span className="text-[10px] font-bold tracking-wide" style={{ color: bgColor === "#FFF8E8" ? "#888" : "rgba(255,255,255,0.7)" }}>
           {sharing ? "generating..." : "share this story"}
         </span>
       </button>
@@ -366,7 +377,6 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
           transform: listIn ? "translateY(0)" : "translateY(14px)",
           transition: "opacity 0.5s ease, transform 0.5s ease",
         }}
-        onClick={(e) => e.stopPropagation()}
       >
         {listSlots.map((slot) => (
           <div key={slot.rank} className="flex items-center gap-3">
@@ -384,6 +394,154 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
 
       {/* Share overlay — fades in with list */}
       <ShareOverlay visible={listIn} sessionId={sessionId} screen="rankings" shareData={data} />
+    </div>
+  );
+}
+
+// ── Slide 02: Most Loved ──────────────────────────────────────────────────────
+const SLIDE2_CSS = `
+  @keyframes dropInBounce {
+    from { opacity: 0; transform: translateY(-30px) scale(0.5); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes slamIn {
+    from { opacity: 0; transform: scale(0.6); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+function SlideMostLoved({ data, sessionId }: { data: ResultsData; sessionId: string }) {
+  const mostLoved = data.insights?.mostLoved;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const [emojiIn,  setEmojiIn]  = useState(false);
+  const [pillIn,   setPillIn]   = useState(false);
+  const [dishIn,   setDishIn]   = useState(false);
+  const [subIn,    setSubIn]    = useState(false);
+  const [badgeIn,  setBadgeIn]  = useState(false);
+  const [shareIn,  setShareIn]  = useState(false);
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [
+      setTimeout(() => setEmojiIn(true),  300),
+      setTimeout(() => setPillIn(true),   600),
+      setTimeout(() => {
+        setDishIn(true);
+        if (canvasRef.current) runConfetti(canvasRef.current);
+      }, 1000),
+      setTimeout(() => setSubIn(true),    1350),
+      setTimeout(() => setBadgeIn(true),  1450),
+      setTimeout(() => setShareIn(true),  2000),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  const date = new Date().toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+  }).toUpperCase();
+
+  if (!mostLoved) return null;
+
+  return (
+    <div className="absolute inset-0 bg-[#FE392D] overflow-hidden flex flex-col">
+      <style>{SLIDE2_CSS}</style>
+
+      {/* Food confetti canvas */}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 20 }} />
+
+      {/* Logo — white via invert */}
+      <div className="absolute top-6 left-4" style={{ zIndex: 25 }}>
+        <Image src="/logo_long_red.png" alt="playte" width={80} height={29} priority style={{ filter: "brightness(0) invert(1)" }} />
+      </div>
+
+      {/* Restaurant + date */}
+      <div className="flex flex-col items-center pt-16 px-6 flex-shrink-0">
+        <p className="text-white/90 font-bold text-[22px] leading-tight text-center">
+          {data.restaurant.name}
+        </p>
+        <p className="text-white/50 font-bold text-[10px] tracking-widest uppercase mt-1">{date}</p>
+        <div className="w-10 h-[3px] bg-[#F5A623] rounded-full mt-2" />
+      </div>
+
+      {/* Center content */}
+      <div className="flex flex-col items-center justify-center flex-1 px-8 text-center gap-7 pb-36">
+
+        {/* 😍 emoji */}
+        <div
+          className="text-[96px] leading-none"
+          style={emojiIn
+            ? { animation: "dropInBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards" }
+            : { opacity: 0, transform: "translateY(-30px) scale(0.5)" }}
+        >
+          😍
+        </div>
+
+        {/* "MOST LOVED" pill */}
+        <div
+          className="rounded-full px-7 py-2.5"
+          style={{
+            background: "rgba(255,255,255,0.2)",
+            border: "2px solid rgba(255,255,255,0.35)",
+            ...(pillIn
+              ? { animation: "fadeUp 0.35s ease forwards" }
+              : { opacity: 0, transform: "translateY(14px)" }),
+          }}
+        >
+          <span className="text-white font-bold text-[14px] tracking-[2px] uppercase">most loved</span>
+        </div>
+
+        {/* Dish name */}
+        <div
+          className="text-[#FFF8EE] font-bold leading-tight"
+          style={{
+            fontSize: "clamp(32px, 10vw, 54px)",
+            ...(dishIn
+              ? { animation: "slamIn 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) forwards" }
+              : { opacity: 0, transform: "scale(0.6)" }),
+          }}
+        >
+          {mostLoved.name}
+        </div>
+
+        {/* Subtitle */}
+        <div
+          className="text-white/60 font-bold text-[17px] italic"
+          style={subIn
+            ? { animation: "fadeUp 0.35s ease forwards" }
+            : { opacity: 0, transform: "translateY(14px)" }}
+        >
+          clean plate club
+        </div>
+
+        {/* Gold stat badge */}
+        <div
+          className="rounded-full px-8 py-3.5 flex items-center gap-1.5"
+          style={{
+            background: "#F5A623",
+            ...(badgeIn
+              ? { animation: "fadeUp 0.35s ease forwards" }
+              : { opacity: 0, transform: "translateY(14px)" }),
+          }}
+        >
+          <span className="text-white font-bold text-[16px]">
+            ★ ranked #1 by {mostLoved.count} player{mostLoved.count !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+      </div>
+
+      {/* Share overlay */}
+      <ShareOverlay
+        visible={shareIn}
+        sessionId={sessionId}
+        screen="most-loved"
+        shareData={{ restaurant: data.restaurant, mostLoved }}
+        bgColor="#FE392D"
+      />
     </div>
   );
 }
@@ -430,11 +588,7 @@ function WrappedInner() {
       ) : (
         <>
           {slide === 0 && <SlideGroupRankings key="s0" data={data} sessionId={id} />}
-          {slide === 1 && (
-            <div className="absolute inset-0 bg-[#FE392D] flex items-center justify-center" style={{ zIndex: 2 }}>
-              <p className="text-white text-2xl font-bold">Slide 2 — Most Loved</p>
-            </div>
-          )}
+          {slide === 1 && <SlideMostLoved key="s1" data={data} sessionId={id} />}
           {slide === 2 && (
             <div className="absolute inset-0 bg-[#FFF8E8] flex items-center justify-center" style={{ zIndex: 2 }}>
               <p className="text-[#444] text-2xl font-bold">Slide 3 — Nacho Type</p>
