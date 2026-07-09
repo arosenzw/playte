@@ -9,6 +9,7 @@ type InsightDish = { id: string; name: string; count: number };
 type ResultsData = {
   restaurant: { name: string };
   rankedDishes: Dish[];
+  players: { id: string; displayName: string; matchPercent: number }[];
   insights: {
     mostLoved: InsightDish | null;
     nachoType: InsightDish | null;
@@ -546,6 +547,642 @@ function SlideMostLoved({ data, sessionId }: { data: ResultsData; sessionId: str
   );
 }
 
+// ── Slide 03: Nacho Type ─────────────────────────────────────────────────────
+const SLIDE3_CSS = `
+  @keyframes nachoCard {
+    0%   { opacity: 0; transform: scale(0.4)              rotate(0deg);    }
+    5%   { opacity: 1;                                                      }
+    7%   {             transform: scaleX(1.1) scaleY(0.9) rotate(0deg);    }
+    13%  {             transform: scaleX(0.95) scaleY(1.05) rotate(0deg);  }
+    19%  {             transform: scale(1)               rotate(0deg);     }
+    38%  {             transform: scale(1)               rotate(0deg);     }
+    45%  {             transform: scale(1)               rotate(6deg);     }
+    52%  {             transform: scale(1)               rotate(-8deg);    }
+    60%  {             transform: scale(1)               rotate(5deg);     }
+    67%  {             transform: scale(1)               rotate(-4deg);    }
+    74%  {             transform: scale(1)               rotate(2.5deg);   }
+    80%  {             transform: scale(1)               rotate(-2deg);    }
+    86%  {             transform: scale(1)               rotate(1deg);     }
+    91%  {             transform: scale(1)               rotate(-0.5deg);  }
+    100% {             transform: scale(1)               rotate(0deg);     }
+  }
+`;
+
+function SlideNachoType({ data, sessionId }: { data: ResultsData; sessionId: string }) {
+  const nachoType = data.insights?.nachoType;
+
+  const [emojiIn,  setEmojiIn]  = useState(false);
+  const [pillIn,   setPillIn]   = useState(false);
+  const [cardIn,   setCardIn]   = useState(false);
+  const [subIn,    setSubIn]    = useState(false);
+  const [badgeIn,  setBadgeIn]  = useState(false);
+  const [shareIn,  setShareIn]  = useState(false);
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [
+      setTimeout(() => setEmojiIn(true), 300),
+      setTimeout(() => setPillIn(true),  600),
+      setTimeout(() => setCardIn(true),  1000),
+      setTimeout(() => setSubIn(true),   3200),
+      setTimeout(() => setBadgeIn(true), 3400),
+      setTimeout(() => setShareIn(true), 3800),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  const date = new Date().toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+  }).toUpperCase();
+
+  if (!nachoType) return null;
+
+  return (
+    <div className="absolute inset-0 bg-[#FFF8EE] overflow-hidden flex flex-col">
+      <style>{SLIDE2_CSS}{SLIDE3_CSS}</style>
+
+      {/* Logo */}
+      <div className="absolute top-6 left-4" style={{ zIndex: 25 }}>
+        <Image src="/logo_long_red.png" alt="playte" width={80} height={29} priority />
+      </div>
+
+      {/* Restaurant + date */}
+      <div className="flex flex-col items-center pt-16 px-6 flex-shrink-0">
+        <p className="text-[#FE392D] font-bold text-[22px] leading-tight text-center">
+          {data.restaurant.name}
+        </p>
+        <p className="text-[#9CA3AF] font-bold text-[10px] tracking-widest uppercase mt-1">{date}</p>
+        <div className="w-10 h-[3px] bg-[#FCCC75] rounded-full mt-2" />
+      </div>
+
+      {/* Center content */}
+      <div className="flex flex-col items-center justify-center flex-1 px-8 text-center gap-7 pb-36">
+
+        {/* 🤨 emoji */}
+        <div
+          className="text-[96px] leading-none"
+          style={emojiIn
+            ? { animation: "dropInBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards" }
+            : { opacity: 0, transform: "translateY(-30px) scale(0.5)" }}
+        >
+          🤨
+        </div>
+
+        {/* "NACHO TYPE" pill */}
+        <div
+          className="rounded-full px-7 py-2.5"
+          style={{
+            background: "#FE392D",
+            ...(pillIn
+              ? { animation: "fadeUp 0.35s ease forwards" }
+              : { opacity: 0, transform: "translateY(14px)" }),
+          }}
+        >
+          <span className="text-white font-bold text-[14px] tracking-[2px] uppercase">nacho type</span>
+        </div>
+
+        {/* Jiggling dish card */}
+        <div
+          className="bg-white border-2 border-[#FE392D] rounded-2xl px-6 py-4 shadow-md w-full max-w-[260px]"
+          style={cardIn
+            ? { animation: "nachoCard 2.1s linear forwards" }
+            : { opacity: 0, transform: "scale(0.4)" }}
+        >
+          <span className="text-[#FE392D] font-bold text-[clamp(13px,4.5vw,20px)] leading-tight">
+            {nachoType.name}
+          </span>
+        </div>
+
+        {/* Subtitle */}
+        <div
+          className="text-[#AAA] font-bold text-[17px] italic"
+          style={subIn
+            ? { animation: "fadeUp 0.35s ease forwards" }
+            : { opacity: 0, transform: "translateY(14px)" }}
+        >
+          zero out of ten, respectfully
+        </div>
+
+        {/* Dark stat badge */}
+        <div
+          className="rounded-full px-8 py-3.5 flex items-center"
+          style={{
+            background: "#1A1A1A",
+            ...(badgeIn
+              ? { animation: "fadeUp 0.35s ease forwards" }
+              : { opacity: 0, transform: "translateY(14px)" }),
+          }}
+        >
+          <span className="text-white font-bold text-[16px]">
+            ranked last by {nachoType.count} player{nachoType.count !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+      </div>
+
+      <ShareOverlay
+        visible={shareIn}
+        sessionId={sessionId}
+        screen="nacho-type"
+        shareData={{ restaurant: data.restaurant, nachoType }}
+        bgColor="#FFF8EE"
+      />
+    </div>
+  );
+}
+
+// ── Slide 04: Hot & Cold ─────────────────────────────────────────────────────
+function runHotCold(bgCanvas: HTMLCanvasElement, boltCanvas: HTMLCanvasElement) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = bgCanvas.offsetWidth;
+  const h = bgCanvas.offsetHeight;
+  for (const c of [bgCanvas, boltCanvas]) { c.width = w * dpr; c.height = h * dpr; }
+  const bgCtx   = bgCanvas.getContext("2d")!;
+  const boltCtx = boltCanvas.getContext("2d")!;
+  bgCtx.scale(dpr, dpr);
+  boltCtx.scale(dpr, dpr);
+
+  const xs = w / 340; // scale bolt x-offsets to screen width
+  const cx = w / 2;
+  const BOLT: [number, number][] = [
+    [0,    0      ], [18,  h*0.10], [-14, h*0.20],
+    [22,   h*0.30 ], [-10, h*0.40], [20,  h*0.50],
+    [-18,  h*0.60 ], [14,  h*0.70], [-12, h*0.80],
+    [16,   h*0.90 ], [0,   h      ],
+  ].map(([x, y]) => [x * xs, y] as [number, number]);
+
+  function drawBgSplit(alpha: number) {
+    bgCtx.clearRect(0, 0, w, h);
+    if (alpha <= 0) return;
+    bgCtx.fillStyle = "#FFF8EE";
+    bgCtx.fillRect(0, 0, w, h);
+
+    // Left half: corner → top of bolt → trace bolt → bottom of bolt → corner
+    bgCtx.save();
+    bgCtx.beginPath();
+    bgCtx.moveTo(0, 0);
+    bgCtx.lineTo(cx + BOLT[0][0], BOLT[0][1]);
+    BOLT.slice(1).forEach(([x, y]) => bgCtx.lineTo(cx + x, y));
+    bgCtx.lineTo(0, h);
+    bgCtx.closePath();
+    bgCtx.fillStyle = `rgba(232,55,42,${alpha * 0.18})`;
+    bgCtx.fill();
+    bgCtx.restore();
+
+    // Right half: corner → top of bolt → trace bolt → bottom of bolt → corner
+    bgCtx.save();
+    bgCtx.beginPath();
+    bgCtx.moveTo(w, 0);
+    bgCtx.lineTo(cx + BOLT[0][0], BOLT[0][1]);
+    BOLT.slice(1).forEach(([x, y]) => bgCtx.lineTo(cx + x, y));
+    bgCtx.lineTo(w, h);
+    bgCtx.closePath();
+    bgCtx.fillStyle = `rgba(91,164,207,${alpha * 0.18})`;
+    bgCtx.fill();
+    bgCtx.restore();
+  }
+
+  function strokeBolt(ctx: CanvasRenderingContext2D, lw: number, color: string, alpha: number) {
+    ctx.save();
+    ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = lw;
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath();
+    BOLT.forEach(([x, y], i) => i === 0 ? ctx.moveTo(cx+x, y) : ctx.lineTo(cx+x, y));
+    ctx.stroke(); ctx.restore();
+  }
+
+  function drawBolt(strikeAlpha: number, settledAlpha: number) {
+    boltCtx.clearRect(0, 0, w, h);
+    if (strikeAlpha > 0) {
+      strokeBolt(boltCtx, 36, "#FFF9C4", strikeAlpha * 0.06);
+      strokeBolt(boltCtx, 20, "#FFE066", strikeAlpha * 0.14);
+      strokeBolt(boltCtx,  9, "#FFD700", strikeAlpha * 0.40);
+      strokeBolt(boltCtx,  3, "#FFFFFF", strikeAlpha * 1.00);
+      boltCtx.save();
+      boltCtx.globalAlpha = strikeAlpha * 0.20;
+      boltCtx.fillStyle = "#FFFFFF";
+      boltCtx.fillRect(0, 0, w, h);
+      boltCtx.restore();
+    }
+    if (settledAlpha > 0) {
+      strokeBolt(boltCtx, 6,   "#FFD700",              settledAlpha * 0.25);
+      strokeBolt(boltCtx, 1.5, "rgba(180,140,0,0.7)",  settledAlpha * 0.55);
+    }
+  }
+
+  const T_STRIKE = 0.8, T_FLASH_END = 1.05, T_DONE = 4.0;
+  let startTs: number | null = null;
+  let raf: number;
+
+  function frame(ts: number) {
+    if (startTs === null) startTs = ts;
+    const t = (ts - startTs) / 1000;
+    let strikeAlpha = 0;
+    if (t >= T_STRIKE && t < T_FLASH_END) {
+      const p = (t - T_STRIKE) / (T_FLASH_END - T_STRIKE);
+      strikeAlpha = p < 0.3 ? p / 0.3 : 1 - (p - 0.3) / 0.7;
+    }
+    const settledAlpha = t >= T_FLASH_END ? Math.min(1, (t - T_FLASH_END) / 0.3) : 0;
+    drawBgSplit(settledAlpha);
+    drawBolt(strikeAlpha, settledAlpha);
+    if (t < T_DONE) raf = requestAnimationFrame(frame);
+  }
+
+  raf = requestAnimationFrame(frame);
+  return () => cancelAnimationFrame(raf);
+}
+
+function SlideHotCold({ data, sessionId }: { data: ResultsData; sessionId: string }) {
+  const hotCold = data.insights?.hotCold;
+  const bgRef   = useRef<HTMLCanvasElement>(null);
+  const boltRef = useRef<HTMLCanvasElement>(null);
+
+  const [emojiIn,  setEmojiIn]  = useState(false);
+  const [pillIn,   setPillIn]   = useState(false);
+  const [dishIn,   setDishIn]   = useState(false);
+  const [subIn,    setSubIn]    = useState(false);
+  const [badgeIn,  setBadgeIn]  = useState(false);
+  const [shareIn,  setShareIn]  = useState(false);
+
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    const timers: ReturnType<typeof setTimeout>[] = [
+      setTimeout(() => setEmojiIn(true), 300),
+      setTimeout(() => setPillIn(true),  600),
+      setTimeout(() => setDishIn(true),  1000),
+      setTimeout(() => {
+        if (bgRef.current && boltRef.current)
+          cleanup = runHotCold(bgRef.current, boltRef.current);
+      }, 1000),
+      setTimeout(() => setSubIn(true),   2400),
+      setTimeout(() => setBadgeIn(true), 2600),
+      setTimeout(() => setShareIn(true), 3000),
+    ];
+    return () => { timers.forEach(clearTimeout); cleanup?.(); };
+  }, []);
+
+  const date = new Date().toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+  }).toUpperCase();
+
+  if (!hotCold) return null;
+
+  return (
+    <div className="absolute inset-0 bg-[#FFF8EE] overflow-hidden flex flex-col">
+      <style>{SLIDE2_CSS}</style>
+
+      <canvas ref={bgRef}   className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }} />
+      <canvas ref={boltRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 15 }} />
+
+      <div className="absolute top-6 left-4" style={{ zIndex: 25 }}>
+        <Image src="/logo_long_red.png" alt="playte" width={80} height={29} priority />
+      </div>
+
+      <div className="flex flex-col items-center pt-16 px-6 flex-shrink-0" style={{ position: "relative", zIndex: 10 }}>
+        <p className="text-[#FE392D] font-bold text-[22px] leading-tight text-center">{data.restaurant.name}</p>
+        <p className="text-[#9CA3AF] font-bold text-[10px] tracking-widest uppercase mt-1">{date}</p>
+        <div className="w-10 h-[3px] bg-[#FCCC75] rounded-full mt-2" />
+      </div>
+
+      <div className="flex flex-col items-center justify-center flex-1 px-8 text-center gap-7 pb-36" style={{ position: "relative", zIndex: 10 }}>
+
+        <div
+          className="text-[96px] leading-none"
+          style={emojiIn
+            ? { animation: "dropInBounce 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards" }
+            : { opacity: 0, transform: "translateY(-30px) scale(0.5)" }}
+        >
+          🌶️
+        </div>
+
+        <div
+          className="rounded-full px-7 py-2.5"
+          style={{
+            background: "#FE392D",
+            ...(pillIn
+              ? { animation: "fadeUp 0.35s ease forwards" }
+              : { opacity: 0, transform: "translateY(14px)" }),
+          }}
+        >
+          <span className="text-white font-bold text-[14px] tracking-[2px] uppercase">hot &amp; cold</span>
+        </div>
+
+        <div
+          className="bg-white border-2 border-[#FE392D] rounded-full px-7 py-3 w-full max-w-[280px]"
+          style={dishIn
+            ? { animation: "fadeUp 0.5s cubic-bezier(0.34,1.4,0.64,1) forwards" }
+            : { opacity: 0, transform: "translateY(14px)" }}
+        >
+          <span className="text-[#FE392D] font-bold text-[clamp(14px,4.5vw,22px)] leading-tight">
+            {hotCold.name}
+          </span>
+        </div>
+
+        <div
+          className="text-[#888] font-bold text-[17px] italic"
+          style={subIn
+            ? { animation: "fadeUp 0.35s ease forwards" }
+            : { opacity: 0, transform: "translateY(14px)" }}
+        >
+          most controversial playte debate
+        </div>
+
+        <div
+          className="rounded-full px-8 py-3.5 flex items-center"
+          style={{
+            background: "#FE392D",
+            ...(badgeIn
+              ? { animation: "fadeUp 0.35s ease forwards" }
+              : { opacity: 0, transform: "translateY(14px)" }),
+          }}
+        >
+          <span className="text-white font-bold text-[16px]">
+            as high as #{hotCold.highRank}, as low as #{hotCold.lowRank}
+          </span>
+        </div>
+
+      </div>
+
+      <ShareOverlay
+        visible={shareIn}
+        sessionId={sessionId}
+        screen="hot-cold"
+        shareData={{ restaurant: data.restaurant, hotCold }}
+        bgColor="#FFF8EE"
+      />
+    </div>
+  );
+}
+
+// ── Slide 05: Best Taste Buds ────────────────────────────────────────────────
+const SLIDE5_CSS = `
+  @keyframes slideInLeft {
+    from { transform: translateX(-80px); opacity: 0; }
+    85%  { transform: translateX(4px); opacity: 1; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideInRight {
+    from { transform: translateX(80px); opacity: 0; }
+    85%  { transform: translateX(-4px); opacity: 1; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes heartPop {
+    0%   { opacity: 0; transform: scale(0.3) translateY(0); }
+    40%  { opacity: 1; transform: scale(1.2) translateY(-4px); }
+    70%  { transform: scale(0.95) translateY(0); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+`;
+
+// CSS clip-path puzzle pieces that truly fit together.
+//
+// Left piece box:  (BW + TR) × PH — the tab protrudes past the right edge into this extra space.
+// Right piece box: BW × PH — the notch is cut from the left edge into the body.
+// Right piece sits at marginLeft: -TR so its body starts where the left piece body ends,
+// and the tab fills the notch.  Right piece has z-index:1 so its body covers the tab
+// everywhere except the void notch.
+const BW = 110; // body width (shared by both pieces)
+const PH = 88;  // piece height
+const TR = 22;  // tab/notch radius
+const TC = 44;  // tab/notch center Y (= PH / 2)
+
+// Left piece: rectangle (0,0)→(BW,PH) plus right-side semicircle tab protruding to x = BW+TR
+// Arc: CW from (BW, TC-TR) through (BW+TR, TC) to (BW, TC+TR) → sweep-flag = 1
+const LEFT_CLIP  = `path('M 0 0 H ${BW} V ${TC - TR} A ${TR} ${TR} 0 0 1 ${BW} ${TC + TR} V ${PH} H 0 Z')`;
+
+// Right piece: rectangle (0,0)→(BW,PH) minus left-side semicircle notch indented to x = TR
+// Arc: CCW from (0, TC+TR) through (TR, TC) to (0, TC-TR) → sweep-flag = 0
+const RIGHT_CLIP = `path('M 0 0 H ${BW} V ${PH} H 0 V ${TC + TR} A ${TR} ${TR} 0 0 0 0 ${TC - TR} V 0 Z')`;
+
+function runHeartConfetti(canvas: HTMLCanvasElement) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  const ctx = canvas.getContext("2d")!;
+  ctx.scale(dpr, dpr);
+
+  const COLORS = ["#FE392D", "#F5A623", "#FF8FAB", "#FFD700", "#FF6B6B", "#FFB3C6"];
+  const cx = w / 2, cy = h * 0.46;
+
+  const hearts = Array.from({ length: 48 }, () => ({
+    x: cx + (Math.random() - 0.5) * 120,
+    y: cy,
+    vx: (Math.random() - 0.5) * 8,
+    vy: -(Math.random() * 11 + 5),
+    size: 7 + Math.random() * 11,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    rot: Math.random() * Math.PI * 2,
+    rotV: (Math.random() - 0.5) * 0.14,
+    alpha: 1,
+    delay: Math.random() * 0.35,
+  }));
+
+  function drawHeart(x: number, y: number, size: number, color: string, rot: number, alpha: number) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, alpha);
+    ctx.translate(x, y); ctx.rotate(rot); ctx.scale(size, size);
+    ctx.beginPath();
+    ctx.moveTo(0, -0.3);
+    ctx.bezierCurveTo( 0.5, -0.9,  1.1, -0.3, 0,  0.6);
+    ctx.bezierCurveTo(-1.1, -0.3, -0.5, -0.9, 0, -0.3);
+    ctx.closePath();
+    ctx.fillStyle = color; ctx.fill();
+    ctx.restore();
+  }
+
+  let startTs: number | null = null;
+  let raf: number;
+
+  function frame(ts: number) {
+    if (startTs === null) startTs = ts;
+    const elapsed = (ts - startTs) / 1000;
+    ctx.clearRect(0, 0, w, h);
+    let any = false;
+    for (const p of hearts) {
+      if (elapsed < p.delay) { any = true; continue; }
+      p.vy += 0.24; p.x += p.vx; p.y += p.vy; p.rot += p.rotV;
+      if (p.y > h * 0.82) p.alpha -= 0.04;
+      if (p.alpha > 0) { any = true; drawHeart(p.x, p.y, p.size, p.color, p.rot, p.alpha); }
+    }
+    if (any) raf = requestAnimationFrame(frame);
+    else ctx.clearRect(0, 0, w, h);
+  }
+  raf = requestAnimationFrame(frame);
+  return () => cancelAnimationFrame(raf);
+}
+
+function SlideBestBuds({ data, sessionId, viewerId }: { data: ResultsData; sessionId: string; viewerId: string }) {
+  const bestBud  = data.insights?.bestBud;
+  const noMatch  = !bestBud || bestBud.matchPercent < 10;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const [emojiIn,   setEmojiIn]   = useState(false);
+  const [pillIn,    setPillIn]    = useState(false);
+  const [wrapIn,    setWrapIn]    = useState(false);
+  const [sliding,   setSliding]   = useState(false);
+  const [subIn,     setSubIn]     = useState(false);
+  const [badgeIn,   setBadgeIn]   = useState(false);
+  const [shareIn,   setShareIn]   = useState(false);
+
+  const viewerName = data.players?.find((p) => p.id === viewerId)?.displayName ?? "you";
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [
+      setTimeout(() => setEmojiIn(true),  300),
+      setTimeout(() => setPillIn(true),   600),
+      setTimeout(() => setWrapIn(true),   1000),
+      setTimeout(() => setSliding(true),  1100),
+      setTimeout(() => {
+        if (!noMatch && canvasRef.current) runHeartConfetti(canvasRef.current);
+      }, 1700),
+      setTimeout(() => setSubIn(true),    2400),
+      setTimeout(() => setBadgeIn(true),  2600),
+      setTimeout(() => setShareIn(true),  3000),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [noMatch]);
+
+  const date = new Date().toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+  }).toUpperCase();
+
+  const matchPct = bestBud?.matchPercent ?? 0;
+
+  return (
+    <div className="absolute inset-0 bg-[#FFF8EE] overflow-hidden flex flex-col">
+      <style>{SLIDE2_CSS}{SLIDE5_CSS}</style>
+
+      {/* Heart confetti canvas */}
+      {!noMatch && (
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 12 }} />
+      )}
+
+      <div className="absolute top-6 left-4" style={{ zIndex: 25 }}>
+        <Image src="/logo_long_red.png" alt="playte" width={80} height={29} priority />
+      </div>
+
+      <div className="flex flex-col items-center pt-16 px-6 flex-shrink-0">
+        <p className="text-[#FE392D] font-bold text-[22px] leading-tight text-center">{data.restaurant.name}</p>
+        <p className="text-[#9CA3AF] font-bold text-[10px] tracking-widest uppercase mt-1">{date}</p>
+        <div className="w-10 h-[3px] bg-[#FCCC75] rounded-full mt-2" />
+      </div>
+
+      <div className="flex flex-col items-center justify-center flex-1 px-8 text-center gap-7 pb-36">
+
+        {/* emoji: 🫶 for match, 💔 for no match */}
+        <div
+          className="text-[96px] leading-none"
+          style={emojiIn
+            ? { animation: "dropInBounce 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards" }
+            : { opacity: 0, transform: "translateY(-30px) scale(0.5)" }}
+        >
+          {noMatch ? "💔" : "🫶"}
+        </div>
+
+        {/* "BEST (TASTE) BUDS" pill */}
+        <div
+          className="rounded-full px-7 py-2.5"
+          style={{
+            background: "#FE392D",
+            ...(pillIn
+              ? { animation: "fadeUp 0.35s ease forwards" }
+              : { opacity: 0, transform: "translateY(14px)" }),
+          }}
+        >
+          <span className="text-white font-bold text-[14px] tracking-[2px] uppercase">best (taste) buds</span>
+        </div>
+
+        {noMatch ? (
+          /* Fallback: no match */
+          <div
+            className="text-[#888] font-bold text-[22px] text-center leading-snug px-2"
+            style={wrapIn
+              ? { animation: "fadeUp 0.5s ease forwards" }
+              : { opacity: 0, transform: "translateY(14px)" }}
+          >
+            you should try dining alone 🍽️
+          </div>
+        ) : (
+          /* Puzzle pieces */
+          <div className="flex items-center justify-center">
+            {/* Left piece — body BW wide, tab protrudes TR to the right */}
+            <div
+              style={{
+                width: BW + TR, height: PH,
+                background: "#FE392D",
+                clipPath: LEFT_CLIP,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                paddingRight: TR,
+                position: "relative", zIndex: 0,
+                ...(sliding
+                  ? { animation: "slideInLeft 0.65s linear forwards" }
+                  : { transform: "translateX(-80px)", opacity: 0 }),
+              }}
+            >
+              <span className="text-white font-bold text-[13px] leading-tight text-center" style={{ maxWidth: BW - 20 }}>
+                {viewerName}
+              </span>
+            </div>
+
+            {/* Right piece — body BW wide, notch cut from left; overlaps left by TR so tab fills notch */}
+            <div
+              style={{
+                width: BW, height: PH,
+                background: "#FCCC75",
+                clipPath: RIGHT_CLIP,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                paddingLeft: TR,
+                marginLeft: -TR,
+                position: "relative", zIndex: 1,
+                ...(sliding
+                  ? { animation: "slideInRight 0.65s linear forwards" }
+                  : { transform: "translateX(80px)", opacity: 0 }),
+              }}
+            >
+              <span className="text-white font-bold text-[13px] leading-tight text-center" style={{ maxWidth: BW - 20 }}>
+                {bestBud!.displayName}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Subtitle */}
+        <div
+          className="text-[#AAA] font-bold text-[17px] italic"
+          style={subIn
+            ? { animation: "fadeUp 0.35s ease forwards" }
+            : { opacity: 0, transform: "translateY(14px)" }}
+        >
+          {noMatch ? "better luck next time" : "you should share next time"}
+        </div>
+
+        {/* Badge */}
+        {!noMatch && (
+          <div
+            className="rounded-full px-8 py-3.5 flex items-center"
+            style={{
+              background: "#FE392D",
+              ...(badgeIn
+                ? { animation: "fadeUp 0.35s ease forwards" }
+                : { opacity: 0, transform: "translateY(14px)" }),
+            }}
+          >
+            <span className="text-white font-bold text-[16px]">{matchPct}% match</span>
+          </div>
+        )}
+
+      </div>
+
+      <ShareOverlay
+        visible={shareIn}
+        sessionId={sessionId}
+        screen="best-buds"
+        shareData={{ restaurant: data.restaurant, bestBud, viewerName }}
+        bgColor="#FFF8EE"
+      />
+    </div>
+  );
+}
+
 // ── Shell: progress bars + tap navigation ─────────────────────────────────────
 const TOTAL_SLIDES = 5;
 
@@ -555,12 +1192,13 @@ function WrappedInner() {
   const [data, setData] = useState<ResultsData | null>(null);
   const [slide, setSlide] = useState(0);
 
+  const viewerId = searchParams.get("viewerId") ?? (typeof window !== "undefined" ? sessionStorage.getItem("playerId") : "") ?? "";
+
   useEffect(() => {
-    const playerId = searchParams.get("viewerId") ?? sessionStorage.getItem("playerId") ?? "";
-    fetch(`/api/session/${id}/results${playerId ? `?playerId=${playerId}` : ""}`)
+    fetch(`/api/session/${id}/results${viewerId ? `?playerId=${viewerId}` : ""}`)
       .then((r) => r.json())
       .then(setData);
-  }, [id]);
+  }, [id, viewerId]);
 
   function advance() { setSlide((s) => Math.min(s + 1, TOTAL_SLIDES - 1)); }
   function back()    { setSlide((s) => Math.max(s - 1, 0)); }
@@ -589,21 +1227,9 @@ function WrappedInner() {
         <>
           {slide === 0 && <SlideGroupRankings key="s0" data={data} sessionId={id} />}
           {slide === 1 && <SlideMostLoved key="s1" data={data} sessionId={id} />}
-          {slide === 2 && (
-            <div className="absolute inset-0 bg-[#FFF8E8] flex items-center justify-center" style={{ zIndex: 2 }}>
-              <p className="text-[#444] text-2xl font-bold">Slide 3 — Nacho Type</p>
-            </div>
-          )}
-          {slide === 3 && (
-            <div className="absolute inset-0 bg-[#FFF8E8] flex items-center justify-center" style={{ zIndex: 2 }}>
-              <p className="text-[#444] text-2xl font-bold">Slide 4 — Hot & Cold</p>
-            </div>
-          )}
-          {slide === 4 && (
-            <div className="absolute inset-0 bg-[#FFF8E8] flex items-center justify-center" style={{ zIndex: 2 }}>
-              <p className="text-[#444] text-2xl font-bold">Slide 5 — Best Buds</p>
-            </div>
-          )}
+          {slide === 2 && <SlideNachoType key="s2" data={data} sessionId={id} />}
+          {slide === 3 && <SlideHotCold key="s3" data={data} sessionId={id} />}
+          {slide === 4 && <SlideBestBuds key="s4" data={data} sessionId={id} viewerId={viewerId} />}
         </>
       )}
     </main>

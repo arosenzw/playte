@@ -61,7 +61,7 @@ function DevPageInner() {
     const page = searchParams.get("page");
     if (page) {
       const target = PAGES.find((p) => p.key === page);
-      if (target) router.replace(target.path(session));
+      if (target) router.replace(`${target.path(session)}?viewerId=${player}`);
     }
   }, []);
 

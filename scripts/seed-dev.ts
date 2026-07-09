@@ -68,7 +68,7 @@ async function main() {
   const host = await prisma.sessionPlayer.create({
     data: {
       sessionId: session.id,
-      displayName: "You (Host)",
+      displayName: "Allyson",
       guestToken: hostToken,
       isHost: true,
       submittedAt: wantResults ? new Date() : null,
