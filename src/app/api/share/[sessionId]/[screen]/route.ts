@@ -8,6 +8,7 @@ import { mostLovedCard } from "@/lib/shareCards/mostLovedCard";
 import { nachoTypeCard } from "@/lib/shareCards/nachoTypeCard";
 import { hotColdCard }   from "@/lib/shareCards/hotColdCard";
 import { bestBudsCard }  from "@/lib/shareCards/bestBudsCard";
+import { summaryCard }   from "@/lib/shareCards/summaryCard";
 
 const FONTS_DIR = path.join(process.cwd(), "public", "fonts");
 
@@ -34,6 +35,7 @@ export async function POST(
       case "nacho-type": jsx = nachoTypeCard(data); break;
       case "hot-cold":   jsx = hotColdCard(data);   break;
       case "best-buds":  jsx = bestBudsCard(data);  break;
+      case "summary":    jsx = summaryCard(data);    break;
       default:
         return NextResponse.json({ error: "Unknown screen" }, { status: 400 });
     }
