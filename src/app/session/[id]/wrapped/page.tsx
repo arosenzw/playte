@@ -298,7 +298,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
               <div className="mb-4 w-full flex flex-col items-center gap-1 px-0.5" style={{ justifyContent: "flex-end" }}>
                 {pod.winner ? (
                   <span
-                    className="text-[10px] font-bold leading-tight text-center"
+                    className="text-[12px] font-bold leading-tight text-center"
                     style={{
                       background: "#FE392D", color: "white",
                       padding: "3px 8px", borderRadius: 999,
@@ -313,7 +313,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
                   </span>
                 ) : (
                   <span
-                    className="text-[10px] font-bold text-[#888] leading-tight text-center block"
+                    className="text-[12px] font-bold text-[#888] leading-tight text-center block"
                     style={{
                       wordBreak: "break-word",
                       ...(inView
@@ -385,8 +385,8 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
             <span className="text-[#FE392D] font-bold text-sm w-5 text-right flex-shrink-0">
               {slot.rank}
             </span>
-            <div className="flex-1 min-w-0 bg-white border border-[#F0E8D0] rounded-xl px-3 py-1.5 shadow-sm">
-              <span className="text-[#444] text-xs font-semibold truncate block">
+            <div className="flex-1 min-w-0 bg-white border border-[#F0E8D0] rounded-xl px-3 py-2 shadow-sm">
+              <span className="text-[#444] text-sm font-semibold truncate block">
                 {slot.dishes.map((d) => d.name).join(" / ")}
               </span>
             </div>
