@@ -381,7 +381,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       {/* Base line */}
       <div className="h-[2px] bg-[#E5DFD5] mx-6 flex-shrink-0" />
 
-      {/* Ranked list — flex-1 so it takes remaining space, overflow-hidden clips gracefully */}
+      {/* Ranked list */}
       <div
         className="flex flex-col gap-2 px-5 pt-4 pb-16 flex-1 overflow-y-auto"
         style={{
@@ -1194,8 +1194,188 @@ function SlideBestBuds({ data, sessionId, viewerId }: { data: ResultsData; sessi
   );
 }
 
+// ── Slide 06: Recap ───────────────────────────────────────────────────────────
+const SLIDE6_CSS = `
+  @keyframes podDropRecap {
+    from { transform: translateY(-40px); opacity: 0; }
+    60%  { transform: translateY(6px);   opacity: 1; }
+    80%  { transform: translateY(-3px); }
+    to   { transform: translateY(0);     opacity: 1; }
+  }
+  @keyframes fadeUpRecap {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const MINI_POD_CONFIG = [
+  { slotIdx: 1, num: "2", height: 55, bg: "#DEDEDE", border: "#BDBDBD", numColor: "#888",    delay: "0.15s" },
+  { slotIdx: 0, num: "1", height: 80, bg: "#F5A623", border: "#C88A0A", numColor: "#1A1A1A", delay: "0s"    },
+  { slotIdx: 2, num: "3", height: 38, bg: "#EDCFAA", border: "#C8A070", numColor: "#AA7840", delay: "0.3s"  },
+];
+
+function SlideRecap({ data, sessionId, viewerId }: { data: ResultsData; sessionId: string; viewerId: string }) {
+  const [podiumIn,  setPodiumIn]  = useState(false);
+  const [winnersIn, setWinnersIn] = useState(false);
+  const [budIn,     setBudIn]     = useState(false);
+  const [shareIn,   setShareIn]   = useState(false);
+
+  useEffect(() => {
+    const timers = [
+      setTimeout(() => setPodiumIn(true),  300),
+      setTimeout(() => setWinnersIn(true), 1000),
+      setTimeout(() => setBudIn(true),     1400),
+      setTimeout(() => setShareIn(true),   1900),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  const podiumSlots = groupIntoSlots(data.rankedDishes).slice(0, 3);
+  const { mostLoved, nachoType, hotCold, bestBud } = data.insights ?? {};
+  const noMatch = !bestBud || bestBud.matchPercent < 10;
+
+  const date = new Date().toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+  }).toUpperCase();
+
+  return (
+    <div className="absolute inset-0 bg-[#FFF8EE] overflow-hidden flex flex-col">
+      <style>{SLIDE6_CSS}</style>
+
+      {/* Logo */}
+      <div className="absolute top-6 left-4" style={{ zIndex: 25 }}>
+        <Image src="/logo_long_red.png" alt="playte" width={80} height={29} priority />
+      </div>
+
+      {/* Restaurant + date */}
+      <div className="flex flex-col items-center pt-14 px-6 flex-shrink-0">
+        <p className="text-[#FE392D] font-bold text-[20px] leading-tight text-center">{data.restaurant.name}</p>
+        <p className="text-[#9CA3AF] font-bold text-[10px] tracking-widest uppercase mt-1">{date}</p>
+        <div className="w-10 h-[3px] bg-[#FCCC75] rounded-full mt-2" />
+        <p className="text-[#1A1A1A] font-bold text-[18px] mt-4">your night in review 🍽️</p>
+      </div>
+
+      {/* Main content */}
+      <div className="flex flex-col items-center flex-1 px-5 pt-8 pb-20 gap-5">
+
+        {/* Mini podium */}
+        <div className="w-full flex flex-col mt-2" style={podiumIn ? {} : { opacity: 0 }}>
+          <div className="flex items-end justify-center gap-2">
+            {MINI_POD_CONFIG.map((pod) => {
+              const slot  = podiumSlots[pod.slotIdx];
+              const label = slot ? slot.dishes.map((d) => d.name).join(" / ") : "";
+              const isTie = (slot?.dishes.length ?? 0) > 1;
+              return (
+                <div key={pod.num} className="flex flex-col items-center flex-1 min-w-0">
+                  <div className="mb-2 w-full flex flex-col items-center gap-0.5 px-0.5">
+                    {pod.num === "1" ? (
+                      <span
+                        className="text-[11px] font-bold leading-tight text-center"
+                        style={{
+                          background: "#FE392D", color: "white",
+                          padding: "2px 8px", borderRadius: 999, wordBreak: "break-word",
+                          ...(podiumIn
+                            ? { animation: `podDropRecap 0.55s linear ${pod.delay} both` }
+                            : { opacity: 0 }),
+                        }}
+                      >{label}</span>
+                    ) : (
+                      <span
+                        className="text-[11px] font-bold text-[#888] leading-tight text-center block"
+                        style={{
+                          wordBreak: "break-word",
+                          ...(podiumIn
+                            ? { animation: `podDropRecap 0.45s linear ${pod.delay} both` }
+                            : { opacity: 0 }),
+                        }}
+                      >{label}</span>
+                    )}
+                    {isTie && (
+                      <span className="inline-flex items-center justify-center rounded-full bg-[#FE392D] text-white font-bold" style={{ width: 16, height: 16, fontSize: 6 }}>TIE</span>
+                    )}
+                  </div>
+                  <div style={{ width: "100%", height: pod.height, background: pod.bg, border: `2px solid ${pod.border}`, borderRadius: "8px 8px 0 0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 20, fontWeight: "bold", color: pod.numColor }}>{pod.num}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="h-[2px] bg-[#E5DFD5]" />
+        </div>
+
+        {/* Category winners */}
+        <div
+          className="w-full flex flex-col gap-2.5 rounded-2xl bg-white border border-[#F0E8D0] px-4 py-3"
+          style={winnersIn
+            ? { animation: "fadeUpRecap 0.4s ease both" }
+            : { opacity: 0, transform: "translateY(16px)" }}
+        >
+          {([
+            { emoji: "😍", label: "most loved",  dish: mostLoved?.name },
+            { emoji: "🤨", label: "nacho type",  dish: nachoType?.name },
+            { emoji: "🌶️", label: "hot & cold",  dish: hotCold?.name   },
+          ] as { emoji: string; label: string; dish?: string }[]).map(({ emoji, label, dish }) =>
+            dish ? (
+              <div key={label} className="flex items-center gap-3">
+                <span className="text-xl leading-none">{emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[9px] font-bold text-[#AAAAAA] uppercase tracking-wider">{label}</p>
+                  <p className="text-[14px] font-bold text-[#1A1A1A] truncate">{dish}</p>
+                </div>
+              </div>
+            ) : null
+          )}
+        </div>
+
+        {/* Best taste bud — featured */}
+        <div
+          className="w-full flex items-center gap-4 rounded-2xl px-5 py-5"
+          style={{
+            background: noMatch ? "#F5F5F5" : "#FEF3F2",
+            ...(budIn
+              ? { animation: "fadeUpRecap 0.4s ease both" }
+              : { opacity: 0, transform: "translateY(16px)" }),
+          }}
+        >
+          <span className="text-5xl leading-none flex-shrink-0">{noMatch ? "💔" : "🫶"}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[9px] font-bold text-[#AAAAAA] uppercase tracking-wider mb-1">best taste buds</p>
+            {noMatch ? (
+              <p className="text-[17px] font-bold text-[#AAAAAA] italic">better luck next time</p>
+            ) : (
+              <>
+                <p className="text-[22px] font-bold text-[#FE392D] truncate leading-tight">{bestBud!.displayName}</p>
+                <div className="inline-flex items-center mt-1.5 rounded-full px-3 py-1" style={{ background: "#FE392D" }}>
+                  <span className="text-white font-bold text-[13px]">{bestBud!.matchPercent}% match</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      <ShareOverlay
+        visible={shareIn}
+        sessionId={sessionId}
+        screen="summary"
+        shareData={{
+          restaurant: data.restaurant,
+          top3: podiumSlots.map((s) => ({ name: s ? s.dishes.map((d) => d.name).join(" / ") : "" })),
+          mostLoved: mostLoved ? { name: mostLoved.name } : null,
+          nachoType: nachoType ? { name: nachoType.name } : null,
+          hotCold:   hotCold   ? { name: hotCold.name }   : null,
+          bestBud:   noMatch   ? null : bestBud,
+        }}
+        bgColor="#FFF8EE"
+      />
+    </div>
+  );
+}
+
 // ── Shell: progress bars + tap navigation ─────────────────────────────────────
-const TOTAL_SLIDES = 5;
+const TOTAL_SLIDES = 6;
 
 function WrappedInner() {
   const { id } = useParams<{ id: string }>();
@@ -1254,6 +1434,7 @@ function WrappedInner() {
           {slide === 2 && <SlideNachoType key="s2" data={data} sessionId={id} />}
           {slide === 3 && <SlideHotCold key="s3" data={data} sessionId={id} />}
           {slide === 4 && <SlideBestBuds key="s4" data={data} sessionId={id} viewerId={viewerId} />}
+          {slide === 5 && <SlideRecap    key="s5" data={data} sessionId={id} viewerId={viewerId} />}
         </>
       )}
     </main>
