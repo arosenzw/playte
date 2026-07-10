@@ -12,12 +12,12 @@ const EMOJI_NO_MATCH = "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/asset
 // Left piece: body 0→BW, CW arc tab from (BW, TC-TR) to (BW, TC+TR) bulging right
 // Right piece: body BW→W, CCW arc notch from (BW, TC+TR) to (BW, TC-TR) curving right (void matches tab)
 const W  = 800;  // total SVG width
-const PH = 160;  // piece height
+const PH = 110;  // piece height
 const BW = 400;  // body half-width
-const TR = 48;   // tab/notch radius
-const TC = 80;   // tab center Y
-const T0 = TC - TR; // 32
-const T1 = TC + TR; // 128
+const TR = 34;   // tab/notch radius
+const TC = 55;   // tab center Y
+const T0 = TC - TR; // 21
+const T1 = TC + TR; // 89
 
 const LEFT_PATH  = `M 0 0 H ${BW} V ${T0} A ${TR} ${TR} 0 0 1 ${BW} ${T1} V ${PH} H 0 Z`;
 const RIGHT_PATH = `M ${BW} 0 H ${W} V ${PH} H ${BW} V ${T1} A ${TR} ${TR} 0 0 0 ${BW} ${T0} V 0 Z`;
@@ -89,7 +89,7 @@ export function bestBudsCard(data: BestBudsCardData) {
               display: "flex", alignItems: "center", justifyContent: "center",
               paddingLeft: 40, paddingRight: 48,
             }}>
-              <span style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 44, color: "white", textAlign: "center" }}>
+              <span style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 36, color: "white", textAlign: "center" }}>
                 {data.viewerName}
               </span>
             </div>
@@ -99,7 +99,7 @@ export function bestBudsCard(data: BestBudsCardData) {
               display: "flex", alignItems: "center", justifyContent: "center",
               paddingRight: 40,
             }}>
-              <span style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 44, color: "white", textAlign: "center" }}>
+              <span style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 36, color: "white", textAlign: "center" }}>
                 {data.bestBud!.displayName}
               </span>
             </div>
