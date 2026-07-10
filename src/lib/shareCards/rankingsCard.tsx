@@ -53,7 +53,7 @@ export function rankingsCard(data: RankingsCardData) {
 
       {/* Logo */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`${SITE_URL}/logo_long.png`} width={200} height={72} style={{ position: "absolute", top: 52, left: 52 }} alt="" />
+      <img src={`${SITE_URL}/logo_long_red.png`} width={200} height={72} style={{ position: "absolute", top: 52, left: 52 }} alt="" />
 
       {/* Restaurant + date */}
       <div style={flex({ flexDirection: "column", alignItems: "center", marginTop: 120 })}>
@@ -130,15 +130,6 @@ export function rankingsCard(data: RankingsCardData) {
         ))}
       </div>
 
-      {/* Bottom brand strip */}
-      <div style={flex({ position: "absolute", bottom: 0, left: 0, right: 0, height: 160, background: "#FE392D", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 6 })}>
-        <div style={flex({ fontSize: 52, fontWeight: 700, color: "white", letterSpacing: 3 })}>
-          playte
-        </div>
-        <div style={flex({ fontSize: 22, fontWeight: 600, color: "rgba(255,255,255,0.7)" })}>
-          rank your meals together
-        </div>
-      </div>
 
     </div>
   );

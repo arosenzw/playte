@@ -1,11 +1,26 @@
 // Satori JSX — Best (Taste) Buds share card (1080×1920)
 // Satori rules: display:flex/none only; no &&; no clip-path
+// Puzzle pieces drawn with SVG <path> elements (tab + notch geometry)
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const flex = (extra?: React.CSSProperties): React.CSSProperties => ({ display: "flex", ...extra });
 
 const EMOJI_MATCH    = "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1faf6.svg"; // 🫶
 const EMOJI_NO_MATCH = "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f494.svg"; // 💔
+
+// Puzzle geometry (px, in SVG coordinate space)
+// Left piece: body 0→BW, CW arc tab from (BW, TC-TR) to (BW, TC+TR) bulging right
+// Right piece: body BW→W, CCW arc notch from (BW, TC+TR) to (BW, TC-TR) curving right (void matches tab)
+const W  = 960;  // total SVG width
+const PH = 260;  // piece height
+const BW = 480;  // body half-width
+const TR = 72;   // tab/notch radius
+const TC = 130;  // tab center Y
+const T0 = TC - TR; // 58
+const T1 = TC + TR; // 202
+
+const LEFT_PATH  = `M 0 0 H ${BW} V ${T0} A ${TR} ${TR} 0 0 1 ${BW} ${T1} V ${PH} H 0 Z`;
+const RIGHT_PATH = `M ${BW} 0 H ${W} V ${PH} H ${BW} V ${T1} A ${TR} ${TR} 0 0 0 ${BW} ${T0} V 0 Z`;
 
 export type BestBudsCardData = {
   restaurant: { name: string };
@@ -57,30 +72,33 @@ export function bestBudsCard(data: BestBudsCardData) {
             <span style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 52, color: "#AAAAAA", textAlign: "center" }}>you should try dining alone</span>
           </div>
         ) : (
-          /* Puzzle-style name blocks */
-          <div style={flex({ flexDirection: "row" })}>
-            {/* Left piece (viewer) — red, rounded left */}
-            <div style={flex({
-              background: "#FE392D",
-              borderRadius: "32px 0 0 32px",
-              paddingLeft: 64, paddingRight: 80,
-              paddingTop: 48, paddingBottom: 48,
-              alignItems: "center", justifyContent: "center",
-              minWidth: 320,
-            })}>
+          /* SVG puzzle pieces with absolutely positioned name text */
+          <div style={{ position: "relative", width: W, height: PH }}>
+            <svg
+              width={W}
+              height={PH}
+              viewBox={`0 0 ${W} ${PH}`}
+              style={{ position: "absolute", top: 0, left: 0 }}
+            >
+              <path d={LEFT_PATH}  fill="#FE392D" />
+              <path d={RIGHT_PATH} fill="#FCCC75" />
+            </svg>
+            {/* Left name (viewer) */}
+            <div style={{
+              position: "absolute", left: 0, top: 0, width: BW, height: PH,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              paddingLeft: 40, paddingRight: 48,
+            }}>
               <span style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 52, color: "white", textAlign: "center" }}>
                 {data.viewerName}
               </span>
             </div>
-            {/* Right piece (best bud) — gold, rounded right */}
-            <div style={flex({
-              background: "#FCCC75",
-              borderRadius: "0 32px 32px 0",
-              paddingLeft: 80, paddingRight: 64,
-              paddingTop: 48, paddingBottom: 48,
-              alignItems: "center", justifyContent: "center",
-              minWidth: 320,
-            })}>
+            {/* Right name (best bud) — offset past tab tip */}
+            <div style={{
+              position: "absolute", left: BW + TR, top: 0, width: W - BW - TR, height: PH,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              paddingRight: 40,
+            }}>
               <span style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 52, color: "white", textAlign: "center" }}>
                 {data.bestBud!.displayName}
               </span>
