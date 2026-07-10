@@ -381,10 +381,9 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       {/* Base line */}
       <div className="h-[2px] bg-[#E5DFD5] mx-6 flex-shrink-0" />
 
-      {/* Ranked list — stop propagation so taps/scroll don't trigger slide navigation */}
+      {/* Ranked list */}
       <div
         className="flex flex-col gap-2 px-5 pt-4 pb-16 flex-1 overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
         style={{
           opacity: listIn ? 1 : 0,
           transform: listIn ? "translateY(0)" : "translateY(14px)",
