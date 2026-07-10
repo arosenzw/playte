@@ -114,7 +114,7 @@ export default function AccountPage() {
               history.map((item) => (
                 <button
                   key={item.sessionId}
-                  onClick={() => router.push(`/session/${item.sessionId}/results?viewerId=${item.playerId}`)}
+                  onClick={() => router.push(`/session/${item.sessionId}/wrapped?viewerId=${item.playerId}&from=history`)}
                   className="bg-[#FFFCF5] rounded-2xl px-4 py-4 shadow-sm border-2 border-[#FCCC75] text-left w-full"
                 >
                   <p className="text-[#FE392D] text-lg font-semibold leading-tight">

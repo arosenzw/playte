@@ -11,6 +11,11 @@ export default function LoadingPage() {
   const [submittedCount, setSubmittedCount] = useState(0);
   const [playerCount, setPlayerCount] = useState(0);
 
+  function goToWrapped() {
+    const viewerId = sessionStorage.getItem("playerId") ?? "";
+    router.replace(`/session/${id}/wrapped${viewerId ? `?viewerId=${viewerId}` : ""}`);
+  }
+
   useEffect(() => {
     function checkStatus() {
       fetch(`/api/session/${id}`)
@@ -19,7 +24,7 @@ export default function LoadingPage() {
           setSubmittedCount(data.submittedCount ?? 0);
           setPlayerCount(data.playerCount ?? 0);
           if (data.status === "results") {
-            router.replace(`/session/${id}/results`);
+            goToWrapped();
           }
         });
     }
@@ -45,7 +50,7 @@ export default function LoadingPage() {
         },
         (payload) => {
           if (payload.new?.status === "results") {
-            router.replace(`/session/${id}/results`);
+            goToWrapped();
           }
         }
       )

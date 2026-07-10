@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const PAGES = [
   { key: "rank",           label: "Rank page",            path: (id: string) => `/session/${id}/rank` },
+  { key: "wrapped",        label: "⭐ Wrapped (new)",      path: (id: string) => `/session/${id}/wrapped` },
   { key: "results",        label: "Group results",         path: (id: string) => `/session/${id}/results` },
   { key: "flavor",         label: "Flavor journey",        path: (id: string) => `/session/${id}/results/flavor` },
   { key: "players",        label: "Player list",           path: (id: string) => `/session/${id}/results/players` },
@@ -60,7 +61,7 @@ function DevPageInner() {
     const page = searchParams.get("page");
     if (page) {
       const target = PAGES.find((p) => p.key === page);
-      if (target) router.replace(target.path(session));
+      if (target) router.replace(`${target.path(session)}?viewerId=${player}`);
     }
   }, []);
 

@@ -10,6 +10,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import * as crypto from "crypto";
+import { computeScores, computeBestBuds, spearman } from "../src/lib/insights";
 
 const prisma = new PrismaClient();
 
@@ -67,7 +68,7 @@ async function main() {
   const host = await prisma.sessionPlayer.create({
     data: {
       sessionId: session.id,
-      displayName: "You (Host)",
+      displayName: "Allyson",
       guestToken: hostToken,
       isHost: true,
       submittedAt: wantResults ? new Date() : null,
@@ -104,21 +105,47 @@ async function main() {
   if (wantResults) {
     const allPlayers = [host, ...extraPlayers];
     const now = new Date();
+    const n = dishes.length;
 
-    for (const player of allPlayers) {
-      // Shuffle dishes differently per player
-      const shuffled = [...dishes].sort(() => Math.random() - 0.5);
-      const tried = shuffled.slice(0, Math.floor(Math.random() * 2) + dishes.length - 1); // skip 0 or 1
-      const skipped = shuffled.slice(tried.length);
+    // Each player gets a hand-crafted order index array so results are spread out.
+    // Index into `dishes` array. Player 0 = host.
+    const playerOrders: (number | null)[][] = [
+      // Host:   loves truffle fries + pistachio, hates bisque
+      [0, 9, 1, 3, 7, 2, 6, 4, 8, 5],
+      // Alex:   loves burrata + miso, skips wagyu
+      [1, 8, 9, 0, 2, 6, 7, 5, 4, null],
+      // Jordan: loves wagyu + bone marrow, hates brussels
+      [3, 6, 0, 9, 7, 2, 1, 8, 4, 5],
+      // Sam:    loves spicy tuna + duck tacos, skips creme brulee
+      [2, 7, 0, 1, 3, 6, 8, 4, 5, null],
+      // Riley:  loves lobster bisque + brussels, hates truffle fries
+      [4, 5, 8, 9, 6, 7, 3, 1, 2, 0],
+    ];
+
+    for (let pi = 0; pi < allPlayers.length; pi++) {
+      const player = allPlayers[pi];
+      const order = playerOrders[pi] ?? playerOrders[0];
+      const tried: { dish: typeof dishes[0]; rank: number }[] = [];
+      const skipped: typeof dishes[0][] = [];
+      let rankPos = 1;
+      for (const idx of order) {
+        if (idx === null) continue; // this player skipped a dish — handled below
+        tried.push({ dish: dishes[idx], rank: rankPos++ });
+      }
+      // Any dish not in the order at all gets skipped
+      const usedIdxs = new Set(order.filter((x): x is number => x !== null));
+      for (let i = 0; i < n; i++) {
+        if (!usedIdxs.has(i)) skipped.push(dishes[i]);
+      }
 
       await prisma.ranking.createMany({
         data: [
-          ...tried.map((d, i) => ({
+          ...tried.map(({ dish, rank }) => ({
             sessionId: session.id,
             restaurantId: restaurant!.id,
             sessionPlayerId: player.id,
-            dishId: d.id,
-            rankPosition: i + 1,
+            dishId: dish.id,
+            rankPosition: rank,
             skipped: false,
             submittedAt: now,
           })),
@@ -135,7 +162,49 @@ async function main() {
       });
     }
 
-    console.log("  (insights not auto-computed — open any player's rank page and re-submit to trigger them)");
+    // Compute and store insights so the results page has real data
+    const allRankings = await prisma.ranking.findMany({
+      where: { sessionId: session.id },
+      select: { sessionPlayerId: true, dishId: true, rankPosition: true, skipped: true },
+    });
+
+    const rankedByPlayer: Record<string, Record<string, number>> = {};
+    const skippedByPlayer: Record<string, Set<string>> = {};
+    for (const r of allRankings) {
+      if (!rankedByPlayer[r.sessionPlayerId]) rankedByPlayer[r.sessionPlayerId] = {};
+      if (!skippedByPlayer[r.sessionPlayerId]) skippedByPlayer[r.sessionPlayerId] = new Set();
+      if (r.skipped || r.rankPosition === null) {
+        skippedByPlayer[r.sessionPlayerId].add(r.dishId);
+      } else {
+        rankedByPlayer[r.sessionPlayerId][r.dishId] = r.rankPosition;
+      }
+    }
+
+    const { dishAvgPoints: dishAvgRanks, dishRankVariance, mostLovedDishId, nachoTypeDishId, hotColdDishId, hotColdDetail } =
+      computeScores(rankedByPlayer, skippedByPlayer);
+
+    const consensusRanks: Record<string, number> = {};
+    Object.entries(dishAvgRanks).sort((a, b) => b[1] - a[1]).forEach(([dishId], i) => { consensusRanks[dishId] = i + 1; });
+
+    const playerCorrelations: Record<string, number> = {};
+    for (const [playerId, playerRanks] of Object.entries(rankedByPlayer)) {
+      playerCorrelations[playerId] = spearman(playerRanks, consensusRanks) ?? 0;
+    }
+
+    const playerBestBuds = computeBestBuds(rankedByPlayer, skippedByPlayer);
+
+    await prisma.sessionInsight.create({
+      data: {
+        sessionId: session.id,
+        mostLovedDishId,
+        nachoTypeDishId,
+        hotColdDishId,
+        dishAvgRanks,
+        dishRankVariance,
+        playerCorrelations,
+        playerBestBuds: { ...playerBestBuds, hotColdDetail } as object,
+      },
+    });
   }
 
   // ── Print the dev URL ─────────────────────────────────────────────────────
@@ -146,7 +215,7 @@ async function main() {
     token: hostToken,
     code: joinCode,
     host: "true",
-    page: wantResults ? "results" : "rank",
+    page: wantResults ? "wrapped" : "rank",
   });
 
   console.log("\n✅ Dev session created!\n");
