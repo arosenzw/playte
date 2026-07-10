@@ -1213,8 +1213,7 @@ function WrappedInner() {
       <div className="absolute top-3 left-3 right-3 flex gap-1.5" style={{ zIndex: 30 }}>
         {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
           <div key={i} className="flex-1 h-[3px] rounded-full bg-black/10 overflow-hidden">
-            {i < slide  && <div className="h-full w-full bg-black/30 rounded-full" />}
-            {i === slide && <div className="h-full bg-black/30 rounded-full" style={{ width: "40%" }} />}
+            {i <= slide && <div className="h-full w-full bg-black/30 rounded-full" />}
           </div>
         ))}
       </div>
