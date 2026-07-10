@@ -62,9 +62,11 @@ export function mostLovedCard(data: MostLovedCardData) {
         </div>
 
         {/* Gold badge */}
-        <div style={flex({ background: "#F5A623", borderRadius: 999, paddingLeft: 60, paddingRight: 60, paddingTop: 28, paddingBottom: 28 })}>
+        <div style={flex({ background: "#F5A623", borderRadius: 999, paddingLeft: 60, paddingRight: 60, paddingTop: 28, paddingBottom: 28, alignItems: "center", gap: 18 })}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/2b50.svg" width={38} height={38} alt="" />
           <span style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 38, color: "white" }}>
-            {`★ ranked #1 by ${data.mostLoved.count} player${data.mostLoved.count !== 1 ? "s" : ""}`}
+            {`ranked #1 by ${data.mostLoved.count} player${data.mostLoved.count !== 1 ? "s" : ""}`}
           </span>
         </div>
 
