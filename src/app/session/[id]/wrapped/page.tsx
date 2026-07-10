@@ -37,7 +37,7 @@ function groupIntoSlots(dishes: Dish[]): Slot[] {
 }
 
 // ── Food confetti canvas (devicePixelRatio-aware) ────────────────────────────
-const FOOD_EMOJIS = ["🍝", "🍋", "🌿", "🍅", "🍄"];
+const ALL_FOOD_EMOJIS = ["🧀","🍗","🍔","🥖","🍓","🫒","🍕","🍟","🌮","🍝","🍣","🥟","🍙","🍦"];
 const EMOJI_SIZE = 28;
 
 function makeEmojiCanvas(emoji: string): HTMLCanvasElement {
@@ -52,6 +52,16 @@ function makeEmojiCanvas(emoji: string): HTMLCanvasElement {
   return c;
 }
 
+function pickRandom5(): string[] {
+  const pool = [...ALL_FOOD_EMOJIS];
+  const out: string[] = [];
+  for (let i = 0; i < 5; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    out.push(pool.splice(idx, 1)[0]);
+  }
+  return out;
+}
+
 function runConfetti(canvas: HTMLCanvasElement) {
   const dpr = window.devicePixelRatio || 1;
   const w = canvas.offsetWidth;
@@ -61,7 +71,7 @@ function runConfetti(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d")!;
   ctx.scale(dpr, dpr);
 
-  const emojiCanvases = FOOD_EMOJIS.map(makeEmojiCanvas);
+  const emojiCanvases = pickRandom5().map(makeEmojiCanvas);
 
   const particles = Array.from({ length: 60 }, () => {
     const size = 18 + Math.random() * 14;
