@@ -73,7 +73,7 @@ export function bestBudsCard(data: BestBudsCardData) {
           </div>
         ) : (
           /* SVG puzzle pieces with absolutely positioned name text */
-          <div style={{ position: "relative", width: W, height: PH }}>
+          <div style={{ position: "relative", width: W, height: PH, display: "flex" }}>
             <svg
               width={W}
               height={PH}
