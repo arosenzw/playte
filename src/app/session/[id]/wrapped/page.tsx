@@ -128,6 +128,7 @@ function ShareOverlay({
       });
       if (!res.ok) throw new Error("share failed");
       const blob = await res.blob();
+
       const file = new File([blob], "playte-results.png", { type: "image/png" });
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: "My Playte results" });
