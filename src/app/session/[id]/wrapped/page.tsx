@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 type Dish = { id: string; name: string; avgRank: number };
@@ -1190,10 +1190,12 @@ const TOTAL_SLIDES = 5;
 function WrappedInner() {
   const { id } = useParams<{ id: string }>();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [data, setData] = useState<ResultsData | null>(null);
   const [slide, setSlide] = useState(0);
 
   const viewerId = searchParams.get("viewerId") ?? (typeof window !== "undefined" ? sessionStorage.getItem("playerId") : "") ?? "";
+  const fromHistory = searchParams.get("from") === "history";
 
   useEffect(() => {
     fetch(`/api/session/${id}/results${viewerId ? `?playerId=${viewerId}` : ""}`)
@@ -1201,8 +1203,20 @@ function WrappedInner() {
       .then(setData);
   }, [id, viewerId]);
 
-  function advance() { setSlide((s) => Math.min(s + 1, TOTAL_SLIDES - 1)); }
-  function back()    { setSlide((s) => Math.max(s - 1, 0)); }
+  function advance() {
+    if (slide === TOTAL_SLIDES - 1) {
+      if (fromHistory) router.push("/account");
+      return;
+    }
+    setSlide((s) => s + 1);
+  }
+  function back() {
+    if (slide === 0) {
+      if (fromHistory) router.push("/account");
+      return;
+    }
+    setSlide((s) => s - 1);
+  }
 
   const onTap = (e: React.MouseEvent) => {
     e.clientX < window.innerWidth / 2 ? back() : advance();
