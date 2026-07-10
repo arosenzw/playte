@@ -381,9 +381,10 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       {/* Base line */}
       <div className="h-[2px] bg-[#E5DFD5] mx-6 flex-shrink-0" />
 
-      {/* Ranked list — flex-1 so it takes remaining space, overflow-hidden clips gracefully */}
+      {/* Ranked list — stop propagation so taps/scroll don't trigger slide navigation */}
       <div
         className="flex flex-col gap-2 px-5 pt-4 pb-16 flex-1 overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
         style={{
           opacity: listIn ? 1 : 0,
           transform: listIn ? "translateY(0)" : "translateY(14px)",
@@ -1252,13 +1253,14 @@ function SlideRecap({ data, sessionId, viewerId }: { data: ResultsData; sessionI
         <p className="text-[#FE392D] font-bold text-[20px] leading-tight text-center">{data.restaurant.name}</p>
         <p className="text-[#9CA3AF] font-bold text-[10px] tracking-widest uppercase mt-1">{date}</p>
         <div className="w-10 h-[3px] bg-[#FCCC75] rounded-full mt-2" />
+        <p className="text-[#1A1A1A] font-bold text-[18px] mt-4">your night in review 🍽️</p>
       </div>
 
       {/* Main content */}
-      <div className="flex flex-col items-center flex-1 px-5 pt-3 pb-20 gap-3">
+      <div className="flex flex-col items-center flex-1 px-5 pt-8 pb-20 gap-5">
 
         {/* Mini podium */}
-        <div className="w-full flex flex-col" style={podiumIn ? {} : { opacity: 0 }}>
+        <div className="w-full flex flex-col mt-2" style={podiumIn ? {} : { opacity: 0 }}>
           <div className="flex items-end justify-center gap-2">
             {MINI_POD_CONFIG.map((pod) => {
               const slot  = podiumSlots[pod.slotIdx];
@@ -1327,9 +1329,9 @@ function SlideRecap({ data, sessionId, viewerId }: { data: ResultsData; sessionI
           )}
         </div>
 
-        {/* Best taste bud */}
+        {/* Best taste bud — featured */}
         <div
-          className="w-full flex items-center gap-3 rounded-2xl px-4 py-3"
+          className="w-full flex items-center gap-4 rounded-2xl px-5 py-5"
           style={{
             background: noMatch ? "#F5F5F5" : "#FEF3F2",
             ...(budIn
@@ -1337,16 +1339,18 @@ function SlideRecap({ data, sessionId, viewerId }: { data: ResultsData; sessionI
               : { opacity: 0, transform: "translateY(16px)" }),
           }}
         >
-          <span className="text-2xl leading-none">{noMatch ? "💔" : "🫶"}</span>
+          <span className="text-5xl leading-none flex-shrink-0">{noMatch ? "💔" : "🫶"}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] font-bold text-[#AAAAAA] uppercase tracking-wider">best taste buds</p>
+            <p className="text-[9px] font-bold text-[#AAAAAA] uppercase tracking-wider mb-1">best taste buds</p>
             {noMatch ? (
-              <p className="text-[13px] font-bold text-[#AAAAAA] italic">better luck next time</p>
+              <p className="text-[17px] font-bold text-[#AAAAAA] italic">better luck next time</p>
             ) : (
-              <div className="flex items-baseline gap-2">
-                <p className="text-[14px] font-bold text-[#FE392D] truncate">{bestBud!.displayName}</p>
-                <p className="text-[12px] font-bold text-[#AAAAAA]">{bestBud!.matchPercent}% match</p>
-              </div>
+              <>
+                <p className="text-[22px] font-bold text-[#FE392D] truncate leading-tight">{bestBud!.displayName}</p>
+                <div className="inline-flex items-center mt-1.5 rounded-full px-3 py-1" style={{ background: "#FE392D" }}>
+                  <span className="text-white font-bold text-[13px]">{bestBud!.matchPercent}% match</span>
+                </div>
+              </>
             )}
           </div>
         </div>
