@@ -162,13 +162,13 @@ function ShareOverlay({
         className="flex flex-col items-center gap-1 opacity-60 active:opacity-100 transition-opacity"
       >
         <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "rgba(128,128,128,0.15)" }}>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: bgColor === "#FFF8E8" ? "#555" : "rgba(255,255,255,0.9)" }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: bgColor === "#FE392D" ? "rgba(255,255,255,0.9)" : "#555" }}>
             <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
             <polyline points="16 6 12 2 8 6"/>
             <line x1="12" y1="2" x2="12" y2="15"/>
           </svg>
         </div>
-        <span className="text-[10px] font-bold tracking-wide" style={{ color: bgColor === "#FFF8E8" ? "#888" : "rgba(255,255,255,0.7)" }}>
+        <span className="text-[10px] font-bold tracking-wide" style={{ color: bgColor === "#FE392D" ? "rgba(255,255,255,0.7)" : "#888" }}>
           {sharing ? "generating..." : "share this story"}
         </span>
       </button>
