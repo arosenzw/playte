@@ -298,7 +298,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
               <div className="mb-4 w-full flex flex-col items-center gap-1 px-0.5" style={{ justifyContent: "flex-end" }}>
                 {pod.winner ? (
                   <span
-                    className="text-[12px] font-bold leading-tight text-center"
+                    className="text-[15px] font-bold leading-tight text-center"
                     style={{
                       background: "#FE392D", color: "white",
                       padding: "3px 8px", borderRadius: 999,
@@ -313,7 +313,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
                   </span>
                 ) : (
                   <span
-                    className="text-[12px] font-bold text-[#888] leading-tight text-center block"
+                    className="text-[15px] font-bold text-[#888] leading-tight text-center block"
                     style={{
                       wordBreak: "break-word",
                       ...(inView
