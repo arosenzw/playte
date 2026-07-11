@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import AccountStatus from "@/components/ui/AccountStatus";
 
 function DoneInner() {
   const { id } = useParams<{ id: string }>();
@@ -52,7 +53,8 @@ function DoneInner() {
   const playersUrl = `/session/${id}/wrapped/players?viewerId=${viewerId}`;
 
   return (
-    <main className="h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-12 pb-14">
+    <main className="h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-12 pb-14 relative">
+      <AccountStatus corner />
       {/* Logo */}
       <Image src="/logo_long_red.png" alt="playte" width={110} height={37} priority />
 
