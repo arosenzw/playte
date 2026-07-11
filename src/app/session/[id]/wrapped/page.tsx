@@ -255,7 +255,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
     return bronzeIn;
   }
 
-  const date = data.date;
+  const date = new Date(data.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
 
   return (
     <div className="absolute inset-0 bg-[#FFF8E8] overflow-hidden flex flex-col">
@@ -455,7 +455,7 @@ function SlideMostLoved({ data, sessionId }: { data: ResultsData; sessionId: str
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  const date = data.date;
+  const date = new Date(data.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
 
   if (!mostLoved) return null;
 
@@ -602,7 +602,7 @@ function SlideNachoType({ data, sessionId }: { data: ResultsData; sessionId: str
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  const date = data.date;
+  const date = new Date(data.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
 
   if (!nachoType) return null;
 
@@ -830,7 +830,7 @@ function SlideHotCold({ data, sessionId }: { data: ResultsData; sessionId: strin
     return () => { timers.forEach(clearTimeout); cleanup?.(); };
   }, []);
 
-  const date = data.date;
+  const date = new Date(data.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
 
   if (!hotCold) return null;
 
@@ -1049,7 +1049,7 @@ function SlideBestBuds({ data, sessionId, viewerId }: { data: ResultsData; sessi
     return () => timers.forEach(clearTimeout);
   }, [noMatch]);
 
-  const date = data.date;
+  const date = new Date(data.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
 
   const matchPct = bestBud?.matchPercent ?? 0;
 
@@ -1229,7 +1229,7 @@ function SlideRecap({ data, sessionId, viewerId }: { data: ResultsData; sessionI
   const { mostLoved, nachoType, hotCold, bestBud } = data.insights ?? {};
   const noMatch = !bestBud || bestBud.matchPercent < 10;
 
-  const date = data.date;
+  const date = new Date(data.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
 
   return (
     <div className="absolute inset-0 bg-[#FFF8EE] overflow-hidden flex flex-col">

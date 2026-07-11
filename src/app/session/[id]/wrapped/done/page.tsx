@@ -13,20 +13,24 @@ function DoneInner() {
   const fromHistory = searchParams.get("from") === "history";
   const [restaurantName, setRestaurantName] = useState("");
   const [date, setDate] = useState("");
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(fromHistory); // history games are already saved
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const isSaved = sessionStorage.getItem(`saved_${id}`) === "1";
-    setSaved(isSaved);
+    if (!fromHistory) {
+      const isSaved = sessionStorage.getItem(`saved_${id}`) === "1";
+      setSaved(isSaved);
+    }
     const pid = viewerId || sessionStorage.getItem("playerId") || "";
     fetch(`/api/session/${id}/results${pid ? `?playerId=${pid}` : ""}`)
       .then((r) => r.json())
       .then((data) => {
         setRestaurantName(data.restaurant?.name ?? "");
-        setDate(data.date ?? "");
+        if (data.date) {
+          setDate(new Date(data.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase());
+        }
       });
-  }, [id, viewerId]);
+  }, [id, viewerId, fromHistory]);
 
   async function handleSave() {
     if (saved || saving) return;

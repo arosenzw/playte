@@ -105,7 +105,7 @@ export async function GET(
 
     return NextResponse.json({
       restaurant: { name: session.restaurant.name },
-      date: session.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase(),
+      date: session.createdAt.toISOString(),
       rankedDishes,
       players: playersWithRankings,
       insights: {
