@@ -1408,12 +1408,12 @@ function WrappedInner() {
     setSlide((s) => s - 1);
   }
 
-  return (
-    <main className="h-dvh bg-[#FFF8E8] relative overflow-hidden select-none">
-      {/* Left / right tap zones for navigation — sit below interactive elements (zIndex 8) */}
-      <div className="absolute inset-y-0 left-0 w-[28%]" style={{ zIndex: 8 }} onClick={back} />
-      <div className="absolute inset-y-0 right-0 w-[28%]" style={{ zIndex: 8 }} onClick={advance} />
+  const onTap = (e: React.MouseEvent) => {
+    e.clientX < window.innerWidth / 2 ? back() : advance();
+  };
 
+  return (
+    <main className="h-dvh bg-[#FFF8E8] relative overflow-hidden select-none" onClick={onTap}>
       {/* Story progress bars */}
       <div className="absolute top-3 left-3 right-3 flex gap-1.5" style={{ zIndex: 30 }}>
         {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
