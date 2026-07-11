@@ -1408,12 +1408,30 @@ function WrappedInner() {
     setSlide((s) => s - 1);
   }
 
-  const onTap = (e: React.MouseEvent) => {
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    pointerStart.current = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!pointerStart.current) return;
+    const dx = e.clientX - pointerStart.current.x;
+    const dy = e.clientY - pointerStart.current.y;
+    pointerStart.current = null;
+    // If vertical movement > 8px it's a scroll — ignore
+    if (Math.abs(dy) > 8) return;
+    // If total movement > 12px it's a drag — ignore
+    if (Math.abs(dx) > 12) return;
+    // Stationary tap — navigate
     e.clientX < window.innerWidth / 2 ? back() : advance();
   };
 
   return (
-    <main className="h-dvh bg-[#FFF8E8] relative overflow-hidden select-none" onClick={onTap}>
+    <main
+      className="h-dvh bg-[#FFF8E8] relative overflow-hidden select-none"
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+    >
       {/* Story progress bars */}
       <div className="absolute top-3 left-3 right-3 flex gap-1.5" style={{ zIndex: 30 }}>
         {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
