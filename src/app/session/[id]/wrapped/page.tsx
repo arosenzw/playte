@@ -385,7 +385,6 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       <div
         className="flex flex-col gap-2 px-5 pt-4 pb-16 flex-1 overflow-y-auto"
         style={{
-          touchAction: "pan-y",
           opacity: listIn ? 1 : 0,
           transform: listIn ? "translateY(0)" : "translateY(14px)",
           transition: "opacity 0.5s ease, transform 0.5s ease",
@@ -1409,30 +1408,12 @@ function WrappedInner() {
     setSlide((s) => s - 1);
   }
 
-  const pointerStart = useRef<{ x: number; y: number } | null>(null);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    pointerStart.current = { x: e.clientX, y: e.clientY };
-  };
-  const onPointerUp = (e: React.PointerEvent) => {
-    if (!pointerStart.current) return;
-    const dx = e.clientX - pointerStart.current.x;
-    const dy = e.clientY - pointerStart.current.y;
-    pointerStart.current = null;
-    // If vertical movement > 8px it's a scroll — ignore
-    if (Math.abs(dy) > 8) return;
-    // If total movement > 12px it's a drag — ignore
-    if (Math.abs(dx) > 12) return;
-    // Stationary tap — navigate
-    e.clientX < window.innerWidth / 2 ? back() : advance();
-  };
-
   return (
-    <main
-      className="h-dvh bg-[#FFF8E8] relative overflow-hidden select-none"
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
-    >
+    <main className="h-dvh bg-[#FFF8E8] relative overflow-hidden select-none">
+      {/* Left / right tap zones for navigation — sit below interactive elements (zIndex 8) */}
+      <div className="absolute inset-y-0 left-0 w-[28%]" style={{ zIndex: 8 }} onClick={back} />
+      <div className="absolute inset-y-0 right-0 w-[28%]" style={{ zIndex: 8 }} onClick={advance} />
+
       {/* Story progress bars */}
       <div className="absolute top-3 left-3 right-3 flex gap-1.5" style={{ zIndex: 30 }}>
         {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
