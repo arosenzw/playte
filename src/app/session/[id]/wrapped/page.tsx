@@ -383,7 +383,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
 
       {/* Ranked list */}
       <div
-        className="flex flex-col gap-2 px-5 pt-4 pb-16 flex-1 overflow-y-auto"
+        className="flex flex-col gap-2 px-5 pt-4 pb-16 flex-1 min-h-0 overflow-y-auto"
         style={{
           opacity: listIn ? 1 : 0,
           transform: listIn ? "translateY(0)" : "translateY(14px)",
