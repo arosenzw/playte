@@ -1409,7 +1409,7 @@ function WrappedInner() {
 
   function advance() {
     if (slide === TOTAL_SLIDES - 1) {
-      if (fromHistory) router.push("/account");
+      router.push(`/session/${id}/wrapped/done?viewerId=${viewerId}${fromHistory ? "&from=history" : ""}`);
       return;
     }
     setSlide((s) => s + 1);
