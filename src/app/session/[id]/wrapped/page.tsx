@@ -290,10 +290,10 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       </p>
 
       {/* Gap between title and podium */}
-      <div style={{ minHeight: 16, maxHeight: 48, flex: "1 1 0" }} />
+      <div style={{ minHeight: 8, maxHeight: 20, flex: "1 1 0" }} />
 
       {/* Podium */}
-      <div className="flex items-end justify-center gap-3 px-6 flex-shrink-0">
+      <div className="flex items-end justify-center gap-3 flex-shrink-0 w-[72%] self-center">
         {POD_CONFIG.map((pod, pi) => {
           const slot = podiumSlots[pod.slotIdx];
           const label = slot ? slot.dishes.map((d) => d.name).join(" / ") : "";
@@ -379,19 +379,22 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       </div>
 
       {/* Base line */}
-      <div className="h-[2px] bg-[#E5DFD5] mx-6 flex-shrink-0" />
+      <div className="h-[2px] bg-[#E5DFD5] flex-shrink-0 w-[72%] self-center" />
 
-      {/* Ranked list */}
-      <div
-        className="flex flex-col gap-2 px-5 pt-4 pb-16 flex-1 overflow-y-auto"
+      {/* Ranked list — narrow + centered so sides remain tappable for navigation */}
+      <div className="flex-1 min-h-0 flex flex-col items-center pt-4 pb-16"
         style={{
           opacity: listIn ? 1 : 0,
           transform: listIn ? "translateY(0)" : "translateY(14px)",
           transition: "opacity 0.5s ease, transform 0.5s ease",
         }}
       >
+        <div
+          className="flex flex-col gap-2 overflow-y-auto w-[72%] h-full pb-4"
+          onClick={(e) => e.stopPropagation()}
+        >
         {listSlots.map((slot) => (
-          <div key={slot.rank} className="flex items-center gap-3">
+          <div key={slot.rank} className="flex items-center gap-2">
             <span className="text-[#FE392D] font-bold text-sm w-5 text-right flex-shrink-0">
               {slot.rank}
             </span>
@@ -402,6 +405,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
             </div>
           </div>
         ))}
+        </div>
       </div>
 
       {/* Share overlay — fades in with list */}
@@ -1376,6 +1380,7 @@ function SlideRecap({ data, sessionId, viewerId }: { data: ResultsData; sessionI
 
 // ── Shell: progress bars + tap navigation ─────────────────────────────────────
 const TOTAL_SLIDES = 6;
+const SLIDE_DURATIONS = [5600, 2000, 3800, 3000, 3000, 1900];
 
 function WrappedInner() {
   const { id } = useParams<{ id: string }>();
@@ -1383,6 +1388,8 @@ function WrappedInner() {
   const router = useRouter();
   const [data, setData] = useState<ResultsData | null>(null);
   const [slide, setSlide] = useState(0);
+  const [navReady, setNavReady] = useState(false);
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const viewerId = searchParams.get("viewerId") ?? (typeof window !== "undefined" ? sessionStorage.getItem("playerId") : "") ?? "";
   const fromHistory = searchParams.get("from") === "history";
@@ -1392,6 +1399,13 @@ function WrappedInner() {
       .then((r) => r.json())
       .then(setData);
   }, [id, viewerId]);
+
+  useEffect(() => {
+    setNavReady(false);
+    if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    navTimerRef.current = setTimeout(() => setNavReady(true), SLIDE_DURATIONS[slide]);
+    return () => { if (navTimerRef.current) clearTimeout(navTimerRef.current); };
+  }, [slide]);
 
   function advance() {
     if (slide === TOTAL_SLIDES - 1) {
@@ -1412,16 +1426,60 @@ function WrappedInner() {
     e.clientX < window.innerWidth / 2 ? back() : advance();
   };
 
+  const redSlide = slide === 1 || slide === 3;
+  const navColor = redSlide ? "rgba(255,255,255,0.85)" : "#FE392D";
+  const backColor = redSlide ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.3)";
+
   return (
     <main className="h-dvh bg-[#FFF8E8] relative overflow-hidden select-none" onClick={onTap}>
+      <style>{`
+        @keyframes fillBar { from { width: 0% } to { width: 100% } }
+      `}</style>
+
       {/* Story progress bars */}
       <div className="absolute top-3 left-3 right-3 flex gap-1.5" style={{ zIndex: 30 }}>
         {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
           <div key={i} className="flex-1 h-[3px] rounded-full bg-black/10 overflow-hidden">
-            {i <= slide && <div className="h-full w-full bg-black/30 rounded-full" />}
+            {i < slide && <div className="h-full w-full bg-black/30 rounded-full" />}
+            {i === slide && (
+              <div
+                style={{
+                  height: "100%",
+                  background: "rgba(0,0,0,0.3)",
+                  borderRadius: "9999px",
+                  animation: `fillBar ${SLIDE_DURATIONS[slide]}ms linear forwards`,
+                }}
+              />
+            )}
           </div>
         ))}
       </div>
+
+      {/* Back button */}
+      {slide > 0 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); back(); }}
+          className="absolute bottom-10 left-6 font-bold text-sm"
+          style={{ zIndex: 50, color: backColor }}
+        >
+          ← back
+        </button>
+      )}
+
+      {/* Next button — fades in when slide animation completes */}
+      <button
+        onClick={(e) => { e.stopPropagation(); advance(); }}
+        className="absolute bottom-10 right-6 font-bold text-sm"
+        style={{
+          zIndex: 50,
+          color: navColor,
+          opacity: navReady ? 1 : 0,
+          transition: "opacity 0.4s ease",
+          pointerEvents: navReady ? "auto" : "none",
+        }}
+      >
+        {slide === TOTAL_SLIDES - 1 ? "done ✓" : "next →"}
+      </button>
 
       {!data ? (
         <div className="h-full flex items-center justify-center">
