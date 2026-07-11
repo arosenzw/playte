@@ -293,7 +293,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       <div style={{ minHeight: 16, maxHeight: 48, flex: "1 1 0" }} />
 
       {/* Podium */}
-      <div className="flex items-end justify-center gap-3 px-6 flex-shrink-0">
+      <div className="flex items-end justify-center gap-3 flex-shrink-0 w-[72%] self-center">
         {POD_CONFIG.map((pod, pi) => {
           const slot = podiumSlots[pod.slotIdx];
           const label = slot ? slot.dishes.map((d) => d.name).join(" / ") : "";
@@ -379,7 +379,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       </div>
 
       {/* Base line */}
-      <div className="h-[2px] bg-[#E5DFD5] mx-6 flex-shrink-0" />
+      <div className="h-[2px] bg-[#E5DFD5] flex-shrink-0 w-[72%] self-center" />
 
       {/* Ranked list — narrow + centered so sides remain tappable for navigation */}
       <div className="flex-1 min-h-0 flex flex-col items-center pt-4 pb-16"
