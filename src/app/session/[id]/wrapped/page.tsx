@@ -290,7 +290,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       </p>
 
       {/* Gap between title and podium */}
-      <div style={{ minHeight: 16, maxHeight: 48, flex: "1 1 0" }} />
+      <div style={{ minHeight: 8, maxHeight: 20, flex: "1 1 0" }} />
 
       {/* Podium */}
       <div className="flex items-end justify-center gap-3 flex-shrink-0 w-[72%] self-center">
