@@ -381,17 +381,20 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       {/* Base line */}
       <div className="h-[2px] bg-[#E5DFD5] mx-6 flex-shrink-0" />
 
-      {/* Ranked list */}
-      <div
-        className="flex flex-col gap-2 px-5 pt-4 pb-16 flex-1 min-h-0 overflow-y-auto"
+      {/* Ranked list — narrow + centered so sides remain tappable for navigation */}
+      <div className="flex-1 min-h-0 flex flex-col items-center pt-4 pb-16"
         style={{
           opacity: listIn ? 1 : 0,
           transform: listIn ? "translateY(0)" : "translateY(14px)",
           transition: "opacity 0.5s ease, transform 0.5s ease",
         }}
       >
+        <div
+          className="flex flex-col gap-2 overflow-y-auto w-[72%] h-full pb-4"
+          onClick={(e) => e.stopPropagation()}
+        >
         {listSlots.map((slot) => (
-          <div key={slot.rank} className="flex items-center gap-3">
+          <div key={slot.rank} className="flex items-center gap-2">
             <span className="text-[#FE392D] font-bold text-sm w-5 text-right flex-shrink-0">
               {slot.rank}
             </span>
@@ -402,6 +405,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
             </div>
           </div>
         ))}
+        </div>
       </div>
 
       {/* Share overlay — fades in with list */}
