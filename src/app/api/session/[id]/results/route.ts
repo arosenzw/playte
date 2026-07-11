@@ -20,6 +20,7 @@ export async function GET(
       },
     });
 
+
     if (!session) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const insights = session.insights;
@@ -104,6 +105,7 @@ export async function GET(
 
     return NextResponse.json({
       restaurant: { name: session.restaurant.name },
+      date: session.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase(),
       rankedDishes,
       players: playersWithRankings,
       insights: {

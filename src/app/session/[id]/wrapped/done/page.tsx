@@ -11,6 +11,7 @@ function DoneInner() {
   const viewerId = searchParams.get("viewerId") ?? "";
   const fromHistory = searchParams.get("from") === "history";
   const [restaurantName, setRestaurantName] = useState("");
+  const [date, setDate] = useState("");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -20,7 +21,10 @@ function DoneInner() {
     const pid = viewerId || sessionStorage.getItem("playerId") || "";
     fetch(`/api/session/${id}/results${pid ? `?playerId=${pid}` : ""}`)
       .then((r) => r.json())
-      .then((data) => setRestaurantName(data.restaurant?.name ?? ""));
+      .then((data) => {
+        setRestaurantName(data.restaurant?.name ?? "");
+        setDate(data.date ?? "");
+      });
   }, [id, viewerId]);
 
   async function handleSave() {
@@ -48,39 +52,47 @@ function DoneInner() {
   const playersUrl = `/session/${id}/wrapped/players?viewerId=${viewerId}`;
 
   return (
-    <main className="h-dvh bg-[#FFF8E8] flex flex-col items-center justify-between px-6 pt-12 pb-14">
-      <div className="flex flex-col items-center gap-2">
-        <Image src="/logo_long_red.png" alt="playte" width={130} height={44} priority />
-        {restaurantName && (
-          <p className="text-[#9CA3AF] italic text-sm">{restaurantName}</p>
-        )}
-      </div>
+    <main className="h-dvh bg-[#FFF8E8] flex flex-col items-center px-6 pt-12 pb-14">
+      {/* Logo */}
+      <Image src="/logo_long_red.png" alt="playte" width={110} height={37} priority />
 
-      <div className="flex flex-col items-center gap-3">
-        <p className="text-[#FE392D] text-4xl font-bold text-center">that&apos;s a wrap!</p>
-        <p className="text-[#9CA3AF] text-base italic text-center">what&apos;s next?</p>
-      </div>
+      {/* Date */}
+      <p className="text-[#9CA3AF] font-bold text-[10px] tracking-widest uppercase mt-3">{date}</p>
 
-      <div className="w-full max-w-sm flex flex-col gap-3">
+      {/* Yellow divider */}
+      <div className="w-10 h-[3px] bg-[#FCCC75] rounded-full mt-2" />
+
+      {/* Restaurant name — biggest element */}
+      {restaurantName && (
+        <p className="text-[#FE392D] text-4xl font-bold text-center mt-4 leading-tight">{restaurantName}</p>
+      )}
+
+      {/* Subtitle */}
+      <p className="text-[#9CA3AF] text-lg italic text-center mt-2">that&apos;s a wrap!</p>
+
+      {/* Buttons — centered in remaining space */}
+      <div className="flex-1 flex flex-col justify-center w-full max-w-sm gap-3">
         <button
           onClick={() => router.push(wrappedUrl)}
-          className="w-full bg-[#FE392D] text-white text-base font-bold py-4 rounded-2xl shadow-sm"
+          className="w-full bg-[#FE392D] text-white text-base font-bold py-4 rounded-2xl shadow-sm flex items-center justify-center gap-3"
         >
-          ↺ re-playte the results
+          <span className="text-2xl leading-none">↺</span>
+          <span>re-playte the results</span>
         </button>
         <button
           onClick={() => router.push(playersUrl)}
-          className="w-full bg-white border-2 border-[#FCCC75] text-[#FE392D] text-base font-bold py-4 rounded-2xl shadow-sm"
+          className="w-full bg-white border-2 border-[#FCCC75] text-[#FE392D] text-base font-bold py-4 rounded-2xl shadow-sm flex items-center justify-center gap-3"
         >
-          👥 individual rankings
+          <span className="text-xl leading-none">👥</span>
+          <span>individual rankings</span>
         </button>
         <button
           onClick={handleSave}
           disabled={saved || saving}
-          className={`w-full text-sm font-semibold py-3.5 rounded-2xl transition-colors ${
+          className={`w-full text-base font-bold py-4 rounded-2xl shadow-sm border-2 transition-colors ${
             saved
-              ? "text-[#FE392D] bg-white border-2 border-[#FCCC75]"
-              : "text-[#9CA3AF] bg-transparent border-2 border-transparent"
+              ? "bg-white border-[#FCCC75] text-[#FE392D]"
+              : "bg-white border-[#E5E7EB] text-[#9CA3AF]"
           }`}
         >
           {saved ? "saved to account ✓" : saving ? "saving..." : "save to account"}
