@@ -385,6 +385,7 @@ function SlideGroupRankings({ data, sessionId }: { data: ResultsData; sessionId:
       <div
         className="flex flex-col gap-2 px-5 pt-4 pb-16 flex-1 overflow-y-auto"
         style={{
+          touchAction: "pan-y",
           opacity: listIn ? 1 : 0,
           transform: listIn ? "translateY(0)" : "translateY(14px)",
           transition: "opacity 0.5s ease, transform 0.5s ease",
